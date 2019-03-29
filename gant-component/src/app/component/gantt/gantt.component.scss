@@ -1,0 +1,58 @@
+div.tasks-description-toggle {
+  width: 1%;
+  background-color: #e8eaea;
+  font-size: 1.5rem;
+  i {
+    -webkit-transition: transform 0.3s;
+    -moz-transition: transform 0.3s;
+    -ms-transition: transform 0.3s;
+    -o-transition: transform 0.3s;
+    transition: transform 0.3s;
+  }
+  &.active {
+    i {
+      transform: rotate(180deg);
+    }
+  }
+  &:hover {
+    cursor: pointer;
+  }
+}
+
+div.tasks-description-container {
+  overflow-x: auto;
+  border: 0.5px #d9dada solid;
+  table.tasks-description {
+    min-width: 100%;
+    thead {
+      div {
+        width: 9rem;
+        height: 2rem;
+        white-space: nowrap;
+        overflow-x: scroll;
+        overflow-y: hidden;
+      }
+
+      div::-webkit-scrollbar {
+        display: none;
+      }
+    }
+
+    tbody {
+      @extend thead;
+    }
+  }
+}
+
+div.tasks-division {
+  background-image: linear-gradient(to right, white, #b8baba, white);
+}
+
+div.tasks-division:hover {
+  cursor: ew-resize;
+}
+
+div.tasks-container {
+  overflow-x: auto;
+  border: 0.5px #d9dada solid;
+}

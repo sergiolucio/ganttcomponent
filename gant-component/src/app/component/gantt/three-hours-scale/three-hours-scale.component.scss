@@ -1,0 +1,28 @@
+
+table.tasks-content {
+  width: 100%;
+
+  thead {
+    th {
+      border: 0.5px #d9dada solid;
+      border-top: 0;
+
+      div {
+        height: 2rem;
+        width: 22rem;
+      }
+    }
+  }
+
+  tbody {
+
+    td {
+      border-left: 0.5px #d9dada solid;
+      border-right: 0.5px #d9dada solid;
+
+      div {
+        height: 2rem;
+      }
+    }
+  }
+}
