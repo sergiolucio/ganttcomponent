@@ -24,7 +24,7 @@
           <table class="tasks-description table-hover table-striped">
             <thead>
             <tr>
-              <th scope="col" class="pl-1 task-name">
+              <th scope="col" class="task-name">
                 <div class="tasks-cell">Nome</div>
               </th>
               <th scope="col" class="task-from-date">
@@ -35,63 +35,13 @@
               </th>
             </tr>
             </thead>
-            <tbody>
-            <tr class="border-left border-info">
-              <td class="pl-1 task-name">
-                <div class="tasks-cell">Tarefa 1</div>
-              </td>
-              <td class="task-from-date">
-                <div class="tasks-cell">Out 16, 2019 20h30</div>
-              </td>
-              <td class="task-to-date">
-                <div class="tasks-cell">Nov 21, 2019 08h00</div>
-              </td>
-            </tr>
-            <tr class="border-left border-danger">
-              <td class="pl-1 task-name">
-                <div class="tasks-cell">Tarefadsfgdsgdsgds 2 Tarefadsfgdsgdsgds 2</div>
-              </td>
-              <td class="task-from-date">
-                <div class="tasks-cell">Out 16, 2019 20h30</div>
-              </td>
-              <td class="task-to-date">
-                <div class="tasks-cell">Nov 21, 2019 08h00</div>
-              </td>
-            </tr>
-            <tr class="border-left border-warning">
-              <td class="pl-1 task-name">
-                <div class="tasks-cell"><i class="fa fa-chevron-up" aria-hidden="true"></i> Projeto 1</div>
-              </td>
-              <td class="task-from-date">
-                <div class="tasks-cell">Out 16, 2019 20h30</div>
-              </td>
-              <td class="task-to-date">
-                <div class="tasks-cell">Nov 21, 2019 08h00</div>
-              </td>
-            </tr>
-            <tr class="border-left border-warning">
-              <td class="pl-3 task-name">
-                <div class="tasks-cell">Tarefa 3</div>
-              </td>
-              <td class="task-from-date">
-                <div class="tasks-cell">Out 16, 2019 20h30</div>
-              </td>
-              <td class="task-to-date">
-                <div class="tasks-cell">Nov 01, 2019 08h00</div>
-              </td>
-            </tr>
-            <tr class="border-left border-warning">
-              <td class="pl-3 task-name">
-                <div class="tasks-cell">Tarefa 4</div>
-              </td>
-              <td class="task-from-date">
-                <div class="tasks-cell">Nov 01, 2019 08h00</div>
-              </td>
-              <td class="task-to-date">
-                <div class="tasks-cell">Nov 21, 2019 08h00</div>
-              </td>
-            </tr>
-            </tbody>
+
+            <ng-template let-item ngFor [ngForOf]="projects">
+              <tbody [innerHTML]="generateProjectData(item) | safeHtml">
+
+              </tbody>
+            </ng-template>
+
           </table>
         </div>
 
@@ -117,5 +67,7 @@
 
 </div>
 
-
+<pre>
+  {{projects | json}}
+</pre>
 

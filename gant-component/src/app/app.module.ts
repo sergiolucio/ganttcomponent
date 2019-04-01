@@ -6,6 +6,7 @@ import { GanttComponent } from './component/gantt/gantt.component';
 import { ThreeHoursScaleStateComponent } from './states/three-hours-scale-state/three-hours-scale-state.component';
 import {RouterModule} from '@angular/router';
 import { ThreeHoursScaleComponent } from './component/gantt/three-hours-scale/three-hours-scale.component';
+import {SafePipe} from './pipes/safe.pipe';
 
 const appRoutes = [
   { path: '', component: ThreeHoursScaleStateComponent},
@@ -17,7 +18,8 @@ const appRoutes = [
     AppComponent,
     GanttComponent,
     ThreeHoursScaleStateComponent,
-    ThreeHoursScaleComponent
+    ThreeHoursScaleComponent,
+    SafePipe
   ],
   imports: [
     BrowserModule,

@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import {IProject} from '../../component/gantt/gantt.component.interface';
+import {GanttUtilsService} from '../../services/gantt.utils.service';
 
 @Component({
   selector: 'app-three-hours-scale-state',
@@ -7,9 +9,14 @@ import { Component, OnInit } from '@angular/core';
 })
 export class ThreeHoursScaleStateComponent implements OnInit {
 
-  constructor() { }
+  public projects: Array<IProject>;
+
+  constructor(
+    private _ganttUtilsService: GanttUtilsService
+  ) { }
 
   ngOnInit() {
+    this.projects = this._ganttUtilsService.generateProject();
   }
 
 }

@@ -1,6 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {EScaleStates} from './gantt.component.interface';
+import {EScaleStates, IProject} from './gantt.component.interface';
 import * as $ from 'jquery';
+import {DomSanitizer} from '@angular/platform-browser';
 
 @Component({
   selector: 'app-gantt',
@@ -9,6 +10,7 @@ import * as $ from 'jquery';
 })
 export class GanttComponent implements OnInit {
   @Input() scaleState: EScaleStates;
+  @Input() projects: Array<IProject>;
 
   public tasksParentWidth: number;
   public tasksDescWidth: number;
@@ -17,7 +19,10 @@ export class GanttComponent implements OnInit {
   public grabber: boolean;
   public oldX: number;
 
-  constructor() { }
+  constructor(
+    private _sanitizer: DomSanitizer
+  ) {
+  }
 
   ngOnInit() {
     this.tasksParentWidth = $('div.row.tables-container').width();
@@ -64,5 +69,54 @@ export class GanttComponent implements OnInit {
     });
 
     $('div.tasks-description-toggle').toggleClass('active');
+  }
+
+  public generateArray(nElements: number): Array<number> {
+    let myArrayNumbers: Array<number>;
+    myArrayNumbers = [];
+
+    for (let i = nElements; i > 0; i--) {
+      myArrayNumbers.push(i);
+    }
+
+    return myArrayNumbers;
+  }
+
+  public generateProjectData(project: IProject): string {
+
+    let myGenerateHTML: string;
+    myGenerateHTML = '';
+
+    myGenerateHTML +=
+      `<tr>
+          <td class="task-name" [ngStyle]="{'border-color': ${project.color} }"><div class="tasks-cell">${project.name}</div></td>
+          <td class="task-from-date"><div class="tasks-cell">${project.date.from}</div></td>
+          <td class="task-to-date"><div class="tasks-cell">${project.date.to}</div></td>
+        </tr>`;
+
+    if (project.projectChildren && project.projectChildren.length > 0) {
+
+      for (const proj of project.projectChildren) {
+        iteratesOverProject(proj);
+      }
+
+    }
+
+    function iteratesOverProject(Obj: IProject): void {
+      myGenerateHTML +=
+        `<tr>
+          <td class="task-name"><div class="tasks-cell">${Obj.name}</div></td>
+          <td class="task-from-date"><div class="tasks-cell">${Obj.date.from}</div></td>
+          <td class="task-to-date"><div class="tasks-cell">${Obj.date.to}</div></td>
+        </tr>`;
+
+      if (Obj.projectChildren && Obj.projectChildren.length > 0) {
+        for (const p of Obj.projectChildren) {
+          iteratesOverProject(p);
+        }
+      }
+    }
+
+    return myGenerateHTML;
   }
 }

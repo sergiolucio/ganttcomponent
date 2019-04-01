@@ -5,23 +5,27 @@ export enum EScaleStates {
 export interface IProject {
   id: string;
   name: string;
+  color: string;
+  date: IDate;
   tasks?: Array<ITasks>;
-  projectChildren?: IProject;
-  projectParent?: IProject;
+  projectChildren?: Array<IProject>;
+  projectParent?: Array<IProject>;
   orderList: number;
+  genealogyDegree: number;
 }
 
 export interface ITasks {
   id: string;
   name: string;
   color: string;
-  date: ITaskDate;
+  date: IDate;
   progress: number;
   dependencies: IDependencies;
   orderList: number;
+  genealogyDegree: number;
 }
 
-export interface ITaskDate {
+export interface IDate {
   from: Date;
   to: Date;
 }
@@ -29,4 +33,19 @@ export interface ITaskDate {
 export interface IDependencies {
   from?: Array<ITasks>;
   to?: Array<ITasks>;
+}
+
+
+
+export interface IGanttItem<T> {
+  id: string;
+  name: string;
+  color: string;
+  date: IDate;
+  progress: number;
+  dependencies: IDependencies;
+  parentId: string;
+  childrenId: string;
+  orderList: number;
+  body: T;
 }
