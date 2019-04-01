@@ -2,6 +2,7 @@ import {Component, Input, OnInit} from '@angular/core';
 import {EScaleStates, IProject} from './gantt.component.interface';
 import * as $ from 'jquery';
 import {DomSanitizer} from '@angular/platform-browser';
+import {debug} from 'util';
 
 @Component({
   selector: 'app-gantt',
@@ -18,6 +19,9 @@ export class GanttComponent implements OnInit {
   public tasksDivisionWidth: number;
   public grabber: boolean;
   public oldX: number;
+
+  private _projectClicked: IProject;
+  private _numOfChildren: number;
 
   constructor(
     private _sanitizer: DomSanitizer
@@ -71,52 +75,52 @@ export class GanttComponent implements OnInit {
     $('div.tasks-description-toggle').toggleClass('active');
   }
 
-  public generateArray(nElements: number): Array<number> {
-    let myArrayNumbers: Array<number>;
-    myArrayNumbers = [];
+  public toggleChildrenVisibility(ev: any, projectId: string): void {
 
-    for (let i = nElements; i > 0; i--) {
-      myArrayNumbers.push(i);
+    this._findProjectClicked(projectId, this.projects);
+
+    this._numOfChildren = 0;
+    this._findChildren(this._projectClicked);
+
+    const $myParentProj = $('#' + projectId);
+    $($myParentProj).toggleClass('collapsed');
+    
+    if ($($myParentProj).hasClass('collapsed')) {
+      $($myParentProj)
+        .nextAll(':lt(' + this._numOfChildren + ')')
+        .addClass('hidden');
+    } else {
+      $($myParentProj)
+        .nextAll(':lt(' + this._numOfChildren + ')')
+        .removeClass('hidden')
+        .removeClass('collapsed');
     }
-
-    return myArrayNumbers;
   }
 
-  public generateProjectData(project: IProject): string {
+  private _findProjectClicked(projId: string, arrayProjects: Array<IProject>): void {
 
-    let myGenerateHTML: string;
-    myGenerateHTML = '';
-
-    myGenerateHTML +=
-      `<tr>
-          <td class="task-name" [ngStyle]="{'border-color': ${project.color} }"><div class="tasks-cell">${project.name}</div></td>
-          <td class="task-from-date"><div class="tasks-cell">${project.date.from}</div></td>
-          <td class="task-to-date"><div class="tasks-cell">${project.date.to}</div></td>
-        </tr>`;
-
-    if (project.projectChildren && project.projectChildren.length > 0) {
-
-      for (const proj of project.projectChildren) {
-        iteratesOverProject(proj);
-      }
-
-    }
-
-    function iteratesOverProject(Obj: IProject): void {
-      myGenerateHTML +=
-        `<tr>
-          <td class="task-name"><div class="tasks-cell">${Obj.name}</div></td>
-          <td class="task-from-date"><div class="tasks-cell">${Obj.date.from}</div></td>
-          <td class="task-to-date"><div class="tasks-cell">${Obj.date.to}</div></td>
-        </tr>`;
-
-      if (Obj.projectChildren && Obj.projectChildren.length > 0) {
-        for (const p of Obj.projectChildren) {
-          iteratesOverProject(p);
+      for (const proj of arrayProjects) {
+        if (proj.id === projId) {
+          this._projectClicked = proj;
+        } else if (proj.projectChildren && proj.projectChildren.length > 0) {
+          this._findProjectClicked(projId, proj.projectChildren);
         }
       }
+  }
+
+  private _findChildren(project: IProject): void {
+
+    if (project.tasks && project.tasks.length > 0) {
+      this._numOfChildren += project.tasks.length;
     }
 
-    return myGenerateHTML;
+    if (project.projectChildren && project.projectChildren.length > 0) {
+      this._numOfChildren += project.projectChildren.length;
+
+      for (const p of project.projectChildren) {
+          this._findChildren(p);
+      }
+
+    }
   }
 }

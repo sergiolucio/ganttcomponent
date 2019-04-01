@@ -20,7 +20,7 @@ export class GanttUtilsService {
         to: moment('25-01-2019', 'dd-mm-yyyy').toDate()
       },
       orderList: 1,
-      genealogyDegree: 2,
+      genealogyDegree: 1,
       tasks: [
         {
           id: 'Task1',
@@ -33,7 +33,7 @@ export class GanttUtilsService {
             to: moment('25-01-2019', 'dd-mm-yyyy').toDate()
           },
           dependencies: {},
-          genealogyDegree: 1
+          genealogyDegree: 2
         }
       ]
     };
@@ -61,7 +61,7 @@ export class GanttUtilsService {
         to: moment('22-01-2019', 'dd-mm-yyyy').toDate()
       },
       orderList: 3,
-      genealogyDegree: 3,
+      genealogyDegree: 1,
       tasks: [
         {
           id: 'Task2',
@@ -106,7 +106,7 @@ export class GanttUtilsService {
               color: '#d72dff',
               progress: 100,
               orderList: 1,
-              genealogyDegree: 1,
+              genealogyDegree: 3,
               date: {
                 from: moment('20-01-2019', 'dd-mm-yyyy').toDate(),
                 to: moment('28-01-2019', 'dd-mm-yyyy').toDate()
@@ -120,7 +120,7 @@ export class GanttUtilsService {
             {
               id: 'project5',
               name: 'Project 5',
-              color: '#fff31e',
+              color: '#ff6357',
               date: {
                 from: moment('20-01-2019', 'dd-mm-yyyy').toDate(),
                 to: moment('28-01-2019', 'dd-mm-yyyy').toDate()
@@ -129,10 +129,10 @@ export class GanttUtilsService {
                 {
                   id: 'Task5',
                   name: 'Task 5',
-                  color: '#d72dff',
+                  color: '#6f6f6f',
                   progress: 100,
                   orderList: 1,
-                  genealogyDegree: 1,
+                  genealogyDegree: 4,
                   date: {
                     from: moment('20-01-2019', 'dd-mm-yyyy').toDate(),
                     to: moment('28-01-2019', 'dd-mm-yyyy').toDate()
@@ -141,7 +141,7 @@ export class GanttUtilsService {
                 }
               ],
               orderList: 6,
-              genealogyDegree: 2
+              genealogyDegree: 3
             }
           ]
         }
