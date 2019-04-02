@@ -1,8 +1,8 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {EScaleStates, IProject} from './gantt.component.interface';
 import * as $ from 'jquery';
-import {DomSanitizer} from '@angular/platform-browser';
-import {debug} from 'util';
+import {Observable} from 'rxjs';
+import {GanttUtilsService} from '../../services/gantt.utils.service';
 
 @Component({
   selector: 'app-gantt',
@@ -11,7 +11,14 @@ import {debug} from 'util';
 })
 export class GanttComponent implements OnInit {
   @Input() scaleState: EScaleStates;
-  @Input() projects: Array<IProject>;
+  @Input() hourScaleSelected: number;
+
+  @Input() minRangeSelected: Date;
+  @Output() minRangeSelectedChange: EventEmitter<Date>;
+  @Input() maxRangeSelected: Date;
+  @Output() maxRangeSelectedChange: EventEmitter<Date>;
+
+  private _projects: Array<IProject>;
 
   public tasksParentWidth: number;
   public tasksDescWidth: number;
@@ -20,12 +27,11 @@ export class GanttComponent implements OnInit {
   public grabber: boolean;
   public oldX: number;
 
-  private _projectClicked: IProject;
-  private _numOfChildren: number;
-
   constructor(
-    private _sanitizer: DomSanitizer
+    private _ganttUtilsService: GanttUtilsService
   ) {
+    this.minRangeSelectedChange = new EventEmitter<Date>();
+    this.maxRangeSelectedChange = new EventEmitter<Date>();
   }
 
   ngOnInit() {
@@ -34,6 +40,8 @@ export class GanttComponent implements OnInit {
     this.tasksWidth = this.tasksParentWidth * 0.7;
     this.tasksDivisionWidth = this.tasksParentWidth * 0.005;
     this.grabber = false;
+
+    this._projects = this._ganttUtilsService.generateProjects();
   }
 
   public turnOnGrabber(event: any): void {
@@ -75,52 +83,20 @@ export class GanttComponent implements OnInit {
     $('div.tasks-description-toggle').toggleClass('active');
   }
 
-  public toggleChildrenVisibility(ev: any, projectId: string): void {
 
-    this._findProjectClicked(projectId, this.projects);
-
-    this._numOfChildren = 0;
-    this._findChildren(this._projectClicked);
-
-    const $myParentProj = $('#' + projectId);
-    $($myParentProj).toggleClass('collapsed');
-    
-    if ($($myParentProj).hasClass('collapsed')) {
-      $($myParentProj)
-        .nextAll(':lt(' + this._numOfChildren + ')')
-        .addClass('hidden');
-    } else {
-      $($myParentProj)
-        .nextAll(':lt(' + this._numOfChildren + ')')
-        .removeClass('hidden')
-        .removeClass('collapsed');
-    }
+  public getProjects(): Observable<Array<IProject>> {
+    return new Observable<Array<IProject>>(observer => {
+      observer.next(this._projects);
+    });
   }
 
-  private _findProjectClicked(projId: string, arrayProjects: Array<IProject>): void {
-
-      for (const proj of arrayProjects) {
-        if (proj.id === projId) {
-          this._projectClicked = proj;
-        } else if (proj.projectChildren && proj.projectChildren.length > 0) {
-          this._findProjectClicked(projId, proj.projectChildren);
-        }
-      }
+  public minRangeSelectedChanged(value: Date): void {
+    this.minRangeSelected = value;
+    this.minRangeSelectedChange.emit(value);
   }
 
-  private _findChildren(project: IProject): void {
-
-    if (project.tasks && project.tasks.length > 0) {
-      this._numOfChildren += project.tasks.length;
-    }
-
-    if (project.projectChildren && project.projectChildren.length > 0) {
-      this._numOfChildren += project.projectChildren.length;
-
-      for (const p of project.projectChildren) {
-          this._findChildren(p);
-      }
-
-    }
+  public maxRangeSelectedChanged(value: Date): void {
+    this.maxRangeSelected = value;
+    this.maxRangeSelectedChange.emit(value);
   }
 }

@@ -3,13 +3,15 @@ import { NgModule } from '@angular/core';
 
 import { AppComponent } from './app.component';
 import { GanttComponent } from './component/gantt/gantt.component';
-import { ThreeHoursScaleStateComponent } from './states/three-hours-scale-state/three-hours-scale-state.component';
+import { HoursScaleStateComponent } from './states/hours-scale-state/hours-scale-state.component';
 import {RouterModule} from '@angular/router';
-import { ThreeHoursScaleComponent } from './component/gantt/three-hours-scale/three-hours-scale.component';
-import {SafePipe} from './pipes/safe.pipe';
+import { HoursScaleComponent } from './component/gantt/hours-scale/hours-scale.component';
+import { TasksDescriptionComponent } from './component/gantt/tasks-description/tasks-description.component';
+import { GanttOptionsPanelComponent } from './gantt-options-panel/gantt-options-panel.component';
+import {FormsModule} from '@angular/forms';
 
 const appRoutes = [
-  { path: '', component: ThreeHoursScaleStateComponent},
+  { path: '', component: HoursScaleStateComponent},
   {path: '**', redirectTo: '', pathMatch: 'full'}
 ];
 
@@ -17,13 +19,15 @@ const appRoutes = [
   declarations: [
     AppComponent,
     GanttComponent,
-    ThreeHoursScaleStateComponent,
-    ThreeHoursScaleComponent,
-    SafePipe
+    HoursScaleComponent,
+    HoursScaleStateComponent,
+    TasksDescriptionComponent,
+    GanttOptionsPanelComponent
   ],
   imports: [
     BrowserModule,
-    RouterModule.forRoot(appRoutes)
+    RouterModule.forRoot(appRoutes),
+    FormsModule
   ],
   providers: [],
   bootstrap: [AppComponent]

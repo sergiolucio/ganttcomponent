@@ -1,0 +1,55 @@
+<table class="tasks-content table-hover table-striped">
+  <thead>
+  <tr>
+    <th class="text-center" [attr.colspan]="24 / hourScaleSelected" *ngFor="let date of totalDateRange">
+      <div class="tasks-cell">{{date | date }}</div>
+    </th>
+  </tr>
+  </thead>
+  <tbody>
+
+  <ng-template ngFor let-project [ngForOf]="projects">
+    <ng-container *ngTemplateOutlet="projectTemplate; context: {project: project}"></ng-container>
+  </ng-template>
+
+  </tbody>
+</table>
+
+
+<!-- templates de função recursiva para percorrer o objeto até ao fim (profundidade desconhecida) -->
+
+<ng-template #projectTemplate let-project="project">
+  <tr>
+    <ng-template ngFor let-date [ngForOf]="totalDateRange">
+      <td *ngFor="let scale of scaleRange">
+        <div class="tasks-cell"></div>
+      </td>
+    </ng-template>
+  </tr>
+
+  <ng-template [ngIf]="project.tasks && project.tasks.length > 0 && !project.collapsed">
+    <ng-template ngFor let-task [ngForOf]="project.tasks">
+      <ng-container *ngTemplateOutlet="tasksOutlet; context: {task: task}"></ng-container>
+    </ng-template>
+  </ng-template>
+
+  <ng-template [ngIf]="project.projectChildren && project.projectChildren.length > 0 && !project.collapsed">
+    <ng-template ngFor let-project [ngForOf]="project.projectChildren">
+      <ng-container *ngTemplateOutlet="projectTemplate; context: {project: project}"></ng-container>
+    </ng-template>
+  </ng-template>
+
+</ng-template>
+
+<ng-template #tasksOutlet let-task="task">
+  <tr>
+    <ng-template ngFor let-date [ngForOf]="totalDateRange">
+      <td *ngFor="let scale of scaleRange">
+        <div class="tasks-cell"></div>
+      </td>
+    </ng-template>
+  </tr>
+</ng-template>
+
+<!-- ============================================================================================ -->
+

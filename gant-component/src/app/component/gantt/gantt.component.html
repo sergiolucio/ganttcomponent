@@ -1,8 +1,3 @@
-<div class="card m-2" id="options-panel">
-  <div class="card-header">
-    Painel de opções
-  </div>
-</div>
 
 <div class="card m-2" id="gant-panel">
 
@@ -13,36 +8,19 @@
   <div class="card-body">
 
     <div class="container-fluid">
+
       <div class="row tables-container" (mousemove)="resizeTables($event)">
+
+
+        <div class="tasks-description-container px-0" [style.width.px]="tasksDescWidth">
+
+          <app-tasks-description [projectsObservable]="getProjects()"></app-tasks-description>
+
+        </div>
 
         <div class="tasks-description-toggle d-flex align-items-center justify-content-center"
              (click)="toggleTasksDescription()">
           <i class="fa fa-angle-left" aria-hidden="true"></i>
-        </div>
-
-        <div class="tasks-description-container px-0" [style.width.px]="tasksDescWidth">
-          <table class="tasks-description table-hover table-striped">
-            <thead>
-            <tr>
-              <th scope="col" class="task-name">
-                <div class="tasks-cell">Nome</div>
-              </th>
-              <th scope="col" class="task-from-date">
-                <div class="tasks-cell"><i class="fa fa-calendar" aria-hidden="true"></i> De</div>
-              </th>
-              <th scope="col" class="task-to-date">
-                <div class="tasks-cell"><i class="fa fa-calendar" aria-hidden="true"></i> Até</div>
-              </th>
-            </tr>
-            </thead>
-
-            <tbody>
-            <ng-template ngFor let-project [ngForOf]="projects" let-index="index">
-              <ng-container *ngTemplateOutlet="templateProject; context: {project: project, index: index}"></ng-container>
-            </ng-template>
-            </tbody>
-
-          </table>
         </div>
 
         <div class="tasks-division"
@@ -53,85 +31,28 @@
         <div class="tasks-container px-0" [style.width.px]="tasksWidth">
           <div [ngSwitch]="scaleState">
 
-            <div *ngSwitchCase="'threeHours'">
-              <app-three-hours-scale></app-three-hours-scale>
+            <div *ngSwitchCase="'hours'">
+
+              <app-hours-scale
+                [projectsObservable]="getProjects()"
+                [hourScaleSelected]="hourScaleSelected"
+                [minRangeSelected]="minRangeSelected"
+                (minRangeSelectedChange)="minRangeSelectedChanged($event)"
+                [maxRangeSelected]="maxRangeSelected"
+                (maxRangeSelectedChange)="maxRangeSelectedChanged($event)"></app-hours-scale>
+
             </div>
 
           </div>
         </div>
 
       </div>
+
+
     </div>
 
   </div>
 
 </div>
 
-
-<!-- template de função recursiva para percorrer o objeto até ao fim (profundidade desconhecida) -->
-<ng-template #templateProject let-project="project" let-mainProjectColor="mainProjectColor">
-  <tr id="{{project.id}}">
-    <td class="project-name"
-        [ngStyle]="{'border-color': mainProjectColor ? mainProjectColor : project.color, 'padding-left': project.genealogyDegree * 15 + 'px' }"
-        [ngSwitch]="project.projectChildren && project.projectChildren.length > 0 || project.tasks && project.tasks.length > 0">
-
-
-        <div class="projects-cell" *ngSwitchCase="true">
-          <i class="fa fa-chevron-up" aria-hidden="true"
-             (click)="toggleChildrenVisibility($event, project.id)"></i> {{project.name}}
-        </div>
-
-        <div class="projects-cell" *ngSwitchDefault>
-          <i class="fa fa-minus" aria-hidden="true"></i> {{project.name}}
-        </div>
-
-    </td>
-    <td class="project-from-date">
-      <div class="projects-cell">{{project.date.from | date: short}}</div>
-    </td>
-    <td class="project-to-date">
-      <div class="projects-cell">{{project.date.to | date: short}}</div>
-    </td>
-  </tr>
-
-
-  <ng-template [ngIf]="project.tasks && project.tasks.length > 0">
-    <ng-template ngFor let-task [ngForOf]="project.tasks">
-
-      <ng-container
-        *ngTemplateOutlet="templateTask; context: { task: task, mainProjectColor: mainProjectColor ? mainProjectColor : project.color }"></ng-container>
-
-    </ng-template>
-  </ng-template>
-
-
-  <ng-template [ngIf]="project.projectChildren && project.projectChildren.length > 0">
-    <ng-template ngFor let-proj [ngForOf]="project.projectChildren">
-
-      <ng-container
-        *ngTemplateOutlet="templateProject; context: { project: proj, mainProjectColor: mainProjectColor ? mainProjectColor : project.color}"></ng-container>
-
-    </ng-template>
-  </ng-template>
-
-</ng-template>
-
-<ng-template #templateTask let-task="task" let-mainProjectColor="mainProjectColor">
-  <tr>
-    <td class="task-name"
-        [ngStyle]="{'border-color': mainProjectColor, 'padding-left': task.genealogyDegree * 15 + 'px' }">
-      <div class="tasks-cell">{{task.name}}</div>
-    </td>
-    <td class="task-from-date">
-      <div class="tasks-cell">{{task.date.from | date: short}}</div>
-    </td>
-    <td class="task-to-date">
-      <div class="tasks-cell">{{task.date.to | date: short}}</div>
-    </td>
-  </tr>
-</ng-template>
-
-<pre>
-  {{projects | json}}
-</pre>
 

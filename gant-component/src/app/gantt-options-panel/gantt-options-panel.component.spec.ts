@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ThreeHoursScaleComponent } from './three-hours-scale.component';
+import { GanttOptionsPanelComponent } from './gantt-options-panel.component';
 
-describe('ThreeHoursScaleComponent', () => {
-  let component: ThreeHoursScaleComponent;
-  let fixture: ComponentFixture<ThreeHoursScaleComponent>;
+describe('GanttOptionsPanelComponent', () => {
+  let component: GanttOptionsPanelComponent;
+  let fixture: ComponentFixture<GanttOptionsPanelComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ ThreeHoursScaleComponent ]
+      declarations: [ GanttOptionsPanelComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ThreeHoursScaleComponent);
+    fixture = TestBed.createComponent(GanttOptionsPanelComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

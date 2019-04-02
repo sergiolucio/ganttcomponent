@@ -9,18 +9,19 @@ export class GanttUtilsService {
   constructor() {
   }
 
-  public generateProject(): Array<IProject> {
+  public generateProjects(): Array<IProject> {
     let project1: IProject;
     project1 = {
       id: 'project1',
       name: 'Project 1',
       color: '#5eff2e',
       date: {
-        from: moment('22-01-2019', 'dd-mm-yyyy').toDate(),
-        to: moment('25-01-2019', 'dd-mm-yyyy').toDate()
+        from: moment('22-01-2019', 'DD-MM-YYYY').toDate(),
+        to: moment('25-01-2019', 'DD-MM-YYYY').toDate()
       },
       orderList: 1,
       genealogyDegree: 1,
+      collapsed: false,
       tasks: [
         {
           id: 'Task1',
@@ -29,11 +30,12 @@ export class GanttUtilsService {
           progress: 100,
           orderList: 1,
           date: {
-            from: moment('22-01-2019', 'dd-mm-yyyy').toDate(),
-            to: moment('25-01-2019', 'dd-mm-yyyy').toDate()
+            from: moment('22-01-2019', 'DD-MM-YYYY').toDate(),
+            to: moment('25-01-2019', 'DD-MM-YYYY').toDate()
           },
           dependencies: {},
-          genealogyDegree: 2
+          genealogyDegree: 2,
+          collapsed: false
         }
       ]
     };
@@ -44,11 +46,12 @@ export class GanttUtilsService {
       name: 'Project 2',
       color: '#ff9a09',
       date: {
-        from: moment('20-01-2019', 'dd-mm-yyyy').toDate(),
-        to: moment('25-01-2019', 'dd-mm-yyyy').toDate()
+        from: moment('20-01-2019', 'DD-MM-YYYY').toDate(),
+        to: moment('25-01-2019', 'DD-MM-YYYY').toDate()
       },
       orderList: 2,
-      genealogyDegree: 1
+      genealogyDegree: 1,
+      collapsed: false
     };
 
     let project3: IProject;
@@ -57,11 +60,12 @@ export class GanttUtilsService {
       name: 'Project 3',
       color: '#2c41ff',
       date: {
-        from: moment('18-01-2019', 'dd-mm-yyyy').toDate(),
-        to: moment('22-01-2019', 'dd-mm-yyyy').toDate()
+        from: moment('18-01-2019', 'DD-MM-YYYY').toDate(),
+        to: moment('22-01-2019', 'DD-MM-YYYY').toDate()
       },
       orderList: 3,
       genealogyDegree: 1,
+      collapsed: false,
       tasks: [
         {
           id: 'Task2',
@@ -70,11 +74,12 @@ export class GanttUtilsService {
           progress: 100,
           orderList: 1,
           date: {
-            from: moment('18-01-2019', 'dd-mm-yyyy').toDate(),
-            to: moment('20-01-2019', 'dd-mm-yyyy').toDate()
+            from: moment('18-01-2019', 'DD-MM-YYYY').toDate(),
+            to: moment('20-01-2019', 'DD-MM-YYYY').toDate()
           },
           dependencies: {},
-          genealogyDegree: 2
+          genealogyDegree: 2,
+          collapsed: false
         },
         {
           id: 'Task3',
@@ -83,11 +88,12 @@ export class GanttUtilsService {
           progress: 100,
           orderList: 1,
           date: {
-            from: moment('19-01-2019', 'dd-mm-yyyy').toDate(),
-            to: moment('22-01-2019', 'dd-mm-yyyy').toDate()
+            from: moment('19-01-2019', 'DD-MM-YYYY').toDate(),
+            to: moment('22-01-2019', 'DD-MM-YYYY').toDate()
           },
           dependencies: {},
-          genealogyDegree: 2
+          genealogyDegree: 2,
+          collapsed: false
         }
       ],
       projectChildren: [
@@ -96,8 +102,8 @@ export class GanttUtilsService {
           name: 'Project 4',
           color: '#fff31e',
           date: {
-            from: moment('20-01-2019', 'dd-mm-yyyy').toDate(),
-            to: moment('28-01-2019', 'dd-mm-yyyy').toDate()
+            from: moment('20-01-2019', 'DD-MM-YYYY').toDate(),
+            to: moment('28-01-2019', 'DD-MM-YYYY').toDate()
           },
           tasks: [
             {
@@ -107,23 +113,25 @@ export class GanttUtilsService {
               progress: 100,
               orderList: 1,
               genealogyDegree: 3,
+              collapsed: false,
               date: {
-                from: moment('20-01-2019', 'dd-mm-yyyy').toDate(),
-                to: moment('28-01-2019', 'dd-mm-yyyy').toDate()
+                from: moment('20-01-2019', 'DD-MM-YYYY').toDate(),
+                to: moment('28-01-2019', 'DD-MM-YYYY').toDate()
               },
               dependencies: {}
             }
           ],
           orderList: 5,
           genealogyDegree: 2,
+          collapsed: false,
           projectChildren: [
             {
               id: 'project5',
               name: 'Project 5',
               color: '#ff6357',
               date: {
-                from: moment('20-01-2019', 'dd-mm-yyyy').toDate(),
-                to: moment('28-01-2019', 'dd-mm-yyyy').toDate()
+                from: moment('20-01-2019', 'DD-MM-YYYY').toDate(),
+                to: moment('28-01-2019', 'DD-MM-YYYY').toDate()
               },
               tasks: [
                 {
@@ -133,15 +141,17 @@ export class GanttUtilsService {
                   progress: 100,
                   orderList: 1,
                   genealogyDegree: 4,
+                  collapsed: false,
                   date: {
-                    from: moment('20-01-2019', 'dd-mm-yyyy').toDate(),
-                    to: moment('28-01-2019', 'dd-mm-yyyy').toDate()
+                    from: moment('20-01-2019', 'DD-MM-YYYY').toDate(),
+                    to: moment('28-01-2019', 'DD-MM-YYYY').toDate()
                   },
                   dependencies: {}
                 }
               ],
               orderList: 6,
-              genealogyDegree: 3
+              genealogyDegree: 3,
+              collapsed: false
             }
           ]
         }

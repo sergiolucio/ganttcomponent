@@ -1,5 +1,5 @@
 export enum EScaleStates {
-  threeHours
+  hours
 }
 
 export interface IProject {
@@ -12,6 +12,7 @@ export interface IProject {
   projectParent?: Array<IProject>;
   orderList: number;
   genealogyDegree: number;
+  collapsed: boolean;
 }
 
 export interface ITasks {
@@ -23,6 +24,7 @@ export interface ITasks {
   dependencies: IDependencies;
   orderList: number;
   genealogyDegree: number;
+  collapsed: boolean;
 }
 
 export interface IDate {
@@ -33,19 +35,4 @@ export interface IDate {
 export interface IDependencies {
   from?: Array<ITasks>;
   to?: Array<ITasks>;
-}
-
-
-
-export interface IGanttItem<T> {
-  id: string;
-  name: string;
-  color: string;
-  date: IDate;
-  progress: number;
-  dependencies: IDependencies;
-  parentId: string;
-  childrenId: string;
-  orderList: number;
-  body: T;
 }

@@ -1,0 +1,13 @@
+
+<app-gantt-options-panel
+  [(hourScaleSelected)]="hourScaleSelected"
+  [(minRangeSelected)]="minRangeSelected"
+  [(maxRangeSelected)]="maxRangeSelected"></app-gantt-options-panel>
+
+<app-gantt scaleState="hours"
+           [hourScaleSelected]="hourScaleSelected"
+           [(maxRangeSelected)]="maxRangeSelected"
+           [(minRangeSelected)]="minRangeSelected"></app-gantt>
+
+
+
