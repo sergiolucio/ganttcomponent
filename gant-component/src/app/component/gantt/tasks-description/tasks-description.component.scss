@@ -1,45 +1,40 @@
 
-table.tasks-description {
-  min-width: 100%;
+#tasks-description {
 
-  thead {
-    div {
-      width: 9rem;
-      height: 2rem;
+  width: 100%;
+  overflow-x: auto;
+
+  .row {
+    min-width: 30rem;
+    box-sizing: content-box;
+    border-bottom: 1px solid #d9dada;
+    height: 2rem;
+
+    > div {
       white-space: nowrap;
-      overflow-x: scroll;
-      overflow-y: hidden;
+      overflow-x: auto;
+
     }
 
-    div::-webkit-scrollbar {
-      display: none;
-    }
-  }
-
-  tbody {
-    @extend thead;
-
-    tr.hidden {
-      display: none;
+    div.task-name {
+      width: 10rem;
     }
 
-    tr.collapsed {
-      i {
-        -webkit-transform: rotate(180deg);
-        -moz-transform: rotate(180deg);
-        -ms-transform: rotate(180deg);
-        -o-transform: rotate(180deg);
-        transform: rotate(180deg);
-      }
+    div.task-from-date, div.task-to-date {
+      width: 10rem;
     }
 
-    td.task-name, td.project-name {
-      border-left: 5px solid;
-
-      div i:hover {
-        cursor: pointer;
-      }
+    &:hover {
+      background-color: rgba(117, 119, 119, 0.2);
     }
   }
 }
 
+
+.cdk-drop-list-dragging .cdk-drag {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0;
+}

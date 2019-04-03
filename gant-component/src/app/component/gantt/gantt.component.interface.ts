@@ -10,7 +10,6 @@ export interface IProject {
   tasks?: Array<ITasks>;
   projectChildren?: Array<IProject>;
   projectParent?: Array<IProject>;
-  orderList: number;
   genealogyDegree: number;
   collapsed: boolean;
 }
@@ -22,7 +21,6 @@ export interface ITasks {
   date: IDate;
   progress: number;
   dependencies: IDependencies;
-  orderList: number;
   genealogyDegree: number;
   collapsed: boolean;
 }

@@ -1,55 +1,69 @@
-<table class="tasks-content table-hover table-striped">
-  <thead>
-  <tr>
-    <th class="text-center" [attr.colspan]="24 / hourScaleSelected" *ngFor="let date of totalDateRange">
-      <div class="tasks-cell">{{date | date }}</div>
-    </th>
-  </tr>
-  </thead>
-  <tbody>
 
-  <ng-template ngFor let-project [ngForOf]="projects">
-    <ng-container *ngTemplateOutlet="projectTemplate; context: {project: project}"></ng-container>
-  </ng-template>
+<div class="container-fluid" id="tasks-content">
 
-  </tbody>
-</table>
+  <div class="row header" [style.width.px]="( elmtCellWidth * (24 / hourScaleSelected) ) * totalDateRange.length">
+    <div class="task-day" *ngFor="let day of totalDateRange"
+         [style.width.px]="elmtCellWidth * (24 / hourScaleSelected)">{{day | date}}</div>
+  </div>
+
+  <div class="row body bg-light" [style.width.px]="( elmtCellWidth * (24 / hourScaleSelected) ) * totalDateRange.length">
+    <div *ngFor="let day of totalDateRange">
+      <div class="task-cell" *ngFor="let scale of scaleRange" [style.width.px]="elmtCellWidth"> {{ scale | date: 'HH:mm' }}</div>
+    </div>
+  </div>
+
+  <div *ngFor="let project of projects">
+    <ng-container *ngTemplateOutlet="projectTemplate; context: {project: project }"></ng-container>
+  </div>
+
+</div>
 
 
 <!-- templates de função recursiva para percorrer o objeto até ao fim (profundidade desconhecida) -->
 
+
 <ng-template #projectTemplate let-project="project">
-  <tr>
-    <ng-template ngFor let-date [ngForOf]="totalDateRange">
-      <td *ngFor="let scale of scaleRange">
-        <div class="tasks-cell"></div>
-      </td>
-    </ng-template>
-  </tr>
+  <div class="row body" [style.width.px]="( elmtCellWidth * (24 / hourScaleSelected) ) * totalDateRange.length">
+    <div *ngFor="let day of totalDateRange">
+      <div class="task-cell" *ngFor="let scale of scaleRange; let index = index" [style.width.px]="elmtCellWidth">
+        <div class="task-cell-with-event"
+             *ngIf="(day | date ) === ( project.date.from | date ) &&
+                    (project.date.from | date: 'HH:mm') >= (scale | date: 'HH:mm') &&
+                    (project.date.from | date: 'HH:mm') < (scaleRange[index+1] | date: 'HH:mm')"></div>
+      </div>
+    </div>
+  </div>
 
   <ng-template [ngIf]="project.tasks && project.tasks.length > 0 && !project.collapsed">
-    <ng-template ngFor let-task [ngForOf]="project.tasks">
-      <ng-container *ngTemplateOutlet="tasksOutlet; context: {task: task}"></ng-container>
-    </ng-template>
+    <div *ngFor="let task of project.tasks">
+      <ng-container *ngTemplateOutlet="tasksTemplate; context: {task: task}"></ng-container>
+    </div>
   </ng-template>
 
   <ng-template [ngIf]="project.projectChildren && project.projectChildren.length > 0 && !project.collapsed">
-    <ng-template ngFor let-project [ngForOf]="project.projectChildren">
-      <ng-container *ngTemplateOutlet="projectTemplate; context: {project: project}"></ng-container>
-    </ng-template>
+    <div *ngFor="let proj of project.projectChildren">
+      <ng-container *ngTemplateOutlet="projectTemplate; context: {project: proj}"></ng-container>
+    </div>
   </ng-template>
 
 </ng-template>
 
-<ng-template #tasksOutlet let-task="task">
-  <tr>
-    <ng-template ngFor let-date [ngForOf]="totalDateRange">
-      <td *ngFor="let scale of scaleRange">
-        <div class="tasks-cell"></div>
-      </td>
-    </ng-template>
-  </tr>
+<ng-template #tasksTemplate let-task="task">
+  <div class="row body" [style.width.px]="( elmtCellWidth * (24 / hourScaleSelected) ) * totalDateRange.length">
+    <div *ngFor="let day of totalDateRange">
+      <div class="task-cell" *ngFor="let scale of scaleRange; let index = index" [style.width.px]="elmtCellWidth">
+        <div class="task-cell-with-event"
+             *ngIf="(day | date ) === ( task.date.from | date ) &&
+                    (task.date.from | date: 'HH:mm') >= (scale | date: 'HH:mm') &&
+                    (task.date.from | date: 'HH:mm') < (scaleRange[index+1] | date: 'HH:mm')"
+                    [style.width.px]="(findEventDuration(task) / hourScaleSelected) * elmtCellWidth"></div>
+      </div>
+    </div>
+  </div>
 </ng-template>
 
+
 <!-- ============================================================================================ -->
+
+
 

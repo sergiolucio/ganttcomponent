@@ -1,19 +1,19 @@
-import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
+import {Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges} from '@angular/core';
 import * as moment from 'moment';
-import {IProject} from '../gantt.component.interface';
+import {IProject, ITasks} from '../gantt.component.interface';
 import {GanttUtilsService} from '../../../services/gantt.utils.service';
-import {Observable} from 'rxjs';
+import {Observable, Subscription} from 'rxjs';
+import {Moment} from 'moment';
 
 @Component({
   selector: 'app-hours-scale',
   templateUrl: './hours-scale.component.html',
   styleUrls: ['./hours-scale.component.scss']
 })
-export class HoursScaleComponent implements OnInit, OnChanges {
-
-  @Input() toggleRowVisibility: string;
+export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
 
   @Input() projectsObservable: Observable<Array<IProject>>;
+  private _subscription: Subscription;
   public projects: Array<IProject>;
 
   @Input() minRangeSelected: Date;
@@ -23,11 +23,15 @@ export class HoursScaleComponent implements OnInit, OnChanges {
   public totalDateRange: Array<Date>;
 
   @Input() hourScaleSelected: number; // escala em horas
-  public scaleRange: Array<number>;
+  public scaleRange: Array<Date>;
+
+  public elmtCellWidth: number;
 
   constructor() {
     this.minRangeSelectedChange = new EventEmitter<Date>();
     this.maxRangeSelectedChange = new EventEmitter<Date>();
+
+    this.elmtCellWidth = 70;
   }
 
   ngOnInit() {
@@ -40,11 +44,12 @@ export class HoursScaleComponent implements OnInit, OnChanges {
 
     this.scaleRange = [];
 
-    for (let i = 0; i < 24; i = i + this.hourScaleSelected) {
-      this.scaleRange.push(i);
+
+    for (const i = moment('00:00', 'HH:mm'); i < moment('24:00', 'HH:mm'); i.add(this.hourScaleSelected, 'hours') ) {
+      this.scaleRange.push(i.toDate());
     }
 
-    this.projectsObservable.subscribe((value: Array<IProject>) => {
+    this._subscription = this.projectsObservable.subscribe((value: Array<IProject>) => {
       this.projects = value;
     });
   }
@@ -54,8 +59,8 @@ export class HoursScaleComponent implements OnInit, OnChanges {
     if (hourScaleSelected && !hourScaleSelected.isFirstChange()) {
       this.scaleRange = [];
 
-      for (let i = 0; i < 24; i = i + this.hourScaleSelected) {
-        this.scaleRange.push(i);
+      for (const i = moment('00:00', 'HH:mm'); i < moment('24:00', 'HH:mm'); i.add(this.hourScaleSelected, 'hours') ) {
+        this.scaleRange.push(i.toDate());
       }
     }
 
@@ -98,5 +103,14 @@ export class HoursScaleComponent implements OnInit, OnChanges {
     }
   }
 
+  ngOnDestroy(): void {
+    this._subscription.unsubscribe();
+  }
 
+  public findEventDuration(event: IProject | ITasks): number {
+    const dateFrom: Moment = moment(event.date.from);
+    const dateTo: Moment = moment(event.date.to);
+
+    return dateTo.diff(dateFrom, 'hours') + 1;
+  }
 }

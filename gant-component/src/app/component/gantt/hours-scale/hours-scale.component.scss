@@ -1,29 +1,52 @@
 
-table.tasks-content {
+
+#tasks-content {
   width: 100%;
+  overflow-x: auto;
 
-  thead {
-    th {
-      border: 0.5px #d9dada solid;
-      border-top: 0;
+  .row {
+    overflow: hidden;
+    box-sizing: content-box;
+    height: 2rem;
+    border-bottom: 1px solid #d9dada;
+    border-left: 1px solid #d9dada;
 
-      div {
-        height: 2rem;
-        width: 22rem;
+    &:hover {
+      background-color: rgba(117, 119, 119, 0.2);
+    }
+
+    .task-day {
+      height: 100%;
+      text-align: center;
+      line-height: 2rem;
+      border-right: 1px solid #d9dada;
+    }
+
+    .task-cell {
+      position: relative;
+      height: 100%;
+      display: inline-block;
+      border-right: 1px solid #d9dada;
+
+      &:hover {
+        background-color: rgba(117, 119, 119, 0.21);
       }
     }
   }
+}
 
-  tbody {
+.task-cell-with-event {
+  position: absolute;
+  z-index: 5;
+  background-color: orange;
+  width: 140px;
+  height: 1.8rem;
+  border: 0.05rem solid #04040445;
+  border-radius: 5px;
+  top: 0.1rem;
 
-    td {
-      border-left: 0.5px #d9dada solid;
-      border-right: 0.5px #d9dada solid;
-
-      div {
-        height: 2rem;
-      }
-    }
+  &:hover {
+    background-color: #e18c00;
   }
 }
 
