@@ -3,9 +3,11 @@
 
   width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid #d9dada;
 
   .row {
-    min-width: 30rem;
+    min-width: 32rem;
     box-sizing: content-box;
     border-bottom: 1px solid #d9dada;
     height: 2rem;
@@ -13,23 +15,40 @@
     > div {
       white-space: nowrap;
       overflow-x: auto;
-
     }
 
     div.task-name {
       width: 10rem;
+      margin: 0 1rem;
     }
 
     div.task-from-date, div.task-to-date {
       width: 10rem;
     }
 
-    &:hover {
+
+    &.body:hover {
       background-color: rgba(117, 119, 119, 0.2);
     }
+
+    &.header {
+      height: 7%;
+    }
   }
+
+  .scroll-viewport {
+    height: 86%;
+    min-width: 30rem;
+    overflow-y: auto;
+    overflow-anchor: none;
+  }
+
 }
 
+
+.cdk-drop-list {
+  height: 100%;
+}
 
 .cdk-drop-list-dragging .cdk-drag {
   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
@@ -38,3 +57,4 @@
 .cdk-drag-placeholder {
   opacity: 0;
 }
+

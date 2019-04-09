@@ -1,3 +1,113 @@
+<div id="tasks-description" class="container-fluid h-100">
+  <div class="row header">
+    <div class="task-name">
+      Nome
+    </div>
+    <div class="task-from-date">
+      <i class="fa fa-calendar" aria-hidden="true"></i> De
+    </div>
+    <div class="task-to-date">
+      <i class="fa fa-calendar" aria-hidden="true"></i> Até
+    </div>
+  </div>
+
+  <div class="row header bg-light">
+  </div>
+
+  <div cdkDropList (cdkDropListDropped)="drop($event)">
+
+    <div class="scroll-viewport" #scrollViewPort>
+      <div *uiScroll="let projectKey of datasource" cdkDrag [cdkDragData]="projectKey">
+
+        <ng-container *ngTemplateOutlet="templateProject; context: {project: projects[projectKey]}"></ng-container>
+
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- templates de função recursiva para percorrer o objeto até ao fim (profundidade desconhecida) -->
+
+<ng-template #templateProject let-project="project">
+
+  <div class="row body">
+    <div class="task-name"
+         *ngIf="project._hasChildren || project._hasTasks"
+         [ngStyle]="project._descriptionStyle">
+
+      <i class="fa fa-chevron-up" aria-hidden="true"
+         (click)="toggleCollapseProject(project)" *ngIf="!project.collapsed"></i>
+      <i class="fa fa-chevron-down" aria-hidden="true"
+         (click)="toggleCollapseProject(project)" *ngIf="project.collapsed"></i> {{project.name}}
+
+    </div>
+
+    <div class="task-name"
+         *ngIf="!(project._hasChildren) && !project._hasTasks"
+         [ngStyle]="project._descriptionStyle">
+      <i class="fa fa-minus" aria-hidden="true"></i> {{project.name}}
+    </div>
+
+    <div class="task-from-date">
+      {{ project.date.from | date: 'd MMM yyyy - HH:mm' }}
+    </div>
+
+    <div class="task-to-date">
+      {{ project.date.to | date: 'd MMM yyyy - HH:mm' }}
+    </div>
+  </div>
+
+  <ng-template [ngIf]="project._hasTasks && !project.collapsed">
+
+    <div cdkDropList (cdkDropListDropped)="dropInside($event)" [cdkDropListData]="project.tasks">
+
+      <div *ngFor="let task of project.tasks | keyvalue" cdkDrag [cdkDragData]="project.tasks[task.key]">
+        <ng-container
+          *ngTemplateOutlet="templateTask; context: { task: task.value }"></ng-container>
+      </div>
+
+    </div>
+
+  </ng-template>
+
+  <ng-template [ngIf]="project._hasChildren && !project.collapsed">
+
+    <div cdkDropList (cdkDropListDropped)="dropInside($event)" [cdkDropListData]="project.projectChildren">
+      <div *ngFor="let proj of project.projectChildren | keyvalue" cdkDrag [cdkDragData]="project.projectChildren[proj.key]">
+        <ng-container
+          *ngTemplateOutlet="templateProject; context: { project: proj.value }"></ng-container>
+      </div>
+    </div>
+
+  </ng-template>
+
+</ng-template>
+
+
+<ng-template #templateTask let-task="task" let-index="index">
+
+  <div class="row body">
+    <div class="task-name"
+         [ngStyle]="task._descriptionStyle">
+      {{task.name}}
+    </div>
+    <div class="task-from-date">
+      {{task.date.from | date: 'd MMM yyyy - HH:mm' }}
+    </div>
+    <div class="task-to-date">
+      {{task.date.to | date: 'd MMM yyyy - HH:mm' }}
+    </div>
+  </div>
+
+</ng-template>
+
+
+<!-- ============================================================================================ -->
+
+<!--
 <div id="tasks-description" class="container-fluid">
   <div class="row header">
     <div class="task-name">
@@ -15,7 +125,7 @@
   </div>
 
   <div cdkDropList (cdkDropListDropped)="drop($event)">
-    <div *ngFor="let project of projects" cdkDrag [cdkDragData]="project">
+    <div *ngFor="let project of projectsKeys" cdkDrag [cdkDragData]="project">
 
       <ng-container *ngTemplateOutlet="templateProject; context: {project: project}"></ng-container>
 
@@ -25,7 +135,7 @@
 </div>
 
 
-<!-- templates de função recursiva para percorrer o objeto até ao fim (profundidade desconhecida) -->
+&lt;!&ndash; templates de função recursiva para percorrer o objeto até ao fim (profundidade desconhecida) &ndash;&gt;
 
 <ng-template #templateProject let-project="project" let-mainProjectColor="mainProjectColor">
 
@@ -98,5 +208,7 @@
 </ng-template>
 
 
-<!-- ============================================================================================ -->
+&lt;!&ndash; ============================================================================================ &ndash;&gt;
+
+-->
 

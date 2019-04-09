@@ -1,3 +1,15 @@
+#gantt-panel {
+  height: 80vh;
+
+  .card-header {
+    height: 7%;
+  }
+
+  .card-body {
+    height: 93%;
+  }
+}
+
 div.tasks-description-toggle {
   width: 1%;
   background-color: #e8eaea;

@@ -1,5 +1,5 @@
 
-<div class="card m-2" id="gant-panel">
+<div class="card m-2" id="gantt-panel">
 
   <div class="card-header">
     Painel Gantt
@@ -7,14 +7,16 @@
 
   <div class="card-body">
 
-    <div class="container-fluid">
+    <div class="container-fluid h-100">
 
-      <div class="row tables-container" (mousemove)="resizeTables($event)">
+      <div class="row h-100 tables-container" (mousemove)="resizeTables($event)">
 
+        <div class="tasks-description-container h-100 px-0" [style.width.px]="tasksDescWidth">
 
-        <div class="tasks-description-container px-0" [style.width.px]="tasksDescWidth">
-
-          <app-tasks-description [projectsObservable]="getProjects()"></app-tasks-description>
+         <app-tasks-description
+           [scrollPosition]="scrollPosition"
+           (scrollPositionChange)="scrollPositionChanged($event)"
+           [projectsObservable]="getProjects()"></app-tasks-description>
 
         </div>
 
@@ -34,6 +36,8 @@
             <div *ngSwitchCase="'hours'">
 
               <app-hours-scale
+                [scrollPosition]="scrollPosition"
+                (scrollPositionChange)="scrollPositionChanged($event)"
                 [projectsObservable]="getProjects()"
                 [hourScaleSelected]="hourScaleSelected"
                 [minRangeSelected]="minRangeSelected"
@@ -54,5 +58,3 @@
   </div>
 
 </div>
-
-

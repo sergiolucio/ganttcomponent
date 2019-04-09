@@ -1,52 +1,82 @@
 
 
+
+
 #tasks-content {
-  width: 100%;
-  overflow-x: auto;
+  overflow-anchor: none;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  white-space: nowrap;
 
-  .row {
-    overflow: hidden;
-    box-sizing: content-box;
-    height: 2rem;
-    border-bottom: 1px solid #d9dada;
-    border-left: 1px solid #d9dada;
+  > div > div {
+    display: inline-block;
 
-    &:hover {
-      background-color: rgba(117, 119, 119, 0.2);
+    &:last-of-type {
+      width: 0!important;
     }
-
-    .task-day {
-      height: 100%;
-      text-align: center;
+    .scroll-horizontal-item {
+      width: 500px;
+      text-align: center!important;
       line-height: 2rem;
-      border-right: 1px solid #d9dada;
     }
 
-    .task-cell {
-      position: relative;
-      height: 100%;
-      display: inline-block;
-      border-right: 1px solid #d9dada;
+    .row {
+      overflow: hidden;
+      box-sizing: content-box;
+      margin: 0;
+      height: 2rem;
+      border-bottom: 1px solid #d9dada;
+      border-left: 1px solid #d9dada;
 
-      &:hover {
-        background-color: rgba(117, 119, 119, 0.21);
+      .task-day {
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        line-height: 2rem;
+        border-right: 1px solid #d9dada;
+      }
+
+      .task-cell {
+        position: relative;
+        height: 100%;
+        display: inline-block;
+        border-right: 1px solid #d9dada;
+
+        &:hover {
+          background-color: rgba(117, 119, 119, 0.21);
+        }
+      }
+
+      &.header {
+        height: 7%;
+      }
+    }
+
+    .vertical-scroll-viewport {
+      height: 63.984vh - 2.5vh; // 93% de 80vh = 74.4vh -> card body; -2,5rem do padding -> - 14% das .row.header -> 86% de 74.4 vh = 63,984 vh  ==== > CORRIGIR!
+      overflow-anchor: none;
+      overflow-y: auto;
+
+      .task-cell-with-event {
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+        position: absolute;
+        z-index: 5;
+        background-color: orange;
+        height: 1.4rem;
+        line-height: 1.4rem;
+        white-space: nowrap;
+        overflow-x: auto;
+        padding-left: 1rem;
+        border: 0.2rem solid #04040445;
+        border-radius: 5px;
+        top: 0.3rem;
+
+        &:hover {
+          background-color: #e18c00;
+        }
       }
     }
   }
 }
-
-.task-cell-with-event {
-  position: absolute;
-  z-index: 5;
-  background-color: orange;
-  width: 140px;
-  height: 1.8rem;
-  border: 0.05rem solid #04040445;
-  border-radius: 5px;
-  top: 0.1rem;
-
-  &:hover {
-    background-color: #e18c00;
-  }
-}
-

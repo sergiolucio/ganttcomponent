@@ -2,27 +2,43 @@ export enum EScaleStates {
   hours
 }
 
+
+export interface IProjects {
+  [id: string]: IProject;
+}
+
 export interface IProject {
-  id: string;
   name: string;
   color: string;
   date: IDate;
-  tasks?: Array<ITasks>;
-  projectChildren?: Array<IProject>;
-  projectParent?: Array<IProject>;
+  tasks?: ITasks;
+  _hasTasks?: boolean;
+  projectChildren?: IProjects;
+  _hasChildren?: boolean;
   genealogyDegree: number;
   collapsed: boolean;
+  _descriptionStyle?: IStyle;
+  _detailsStyle?: IStyle;
+  _projectStartPosition?: number;
+  _projectDurationWidth?: number;
 }
 
 export interface ITasks {
-  id: string;
+  [id: string]: ITask;
+}
+
+export interface ITask {
   name: string;
   color: string;
   date: IDate;
-  progress: number;
-  dependencies: IDependencies;
+  progress?: number;
+  dependencies?: IDependencies;
   genealogyDegree: number;
   collapsed: boolean;
+  _descriptionStyle?: IStyle;
+  _detailsStyle?: IStyle;
+  _taskStartPosition?: number;
+  _taskDurationWidth?: number;
 }
 
 export interface IDate {
@@ -31,6 +47,11 @@ export interface IDate {
 }
 
 export interface IDependencies {
-  from?: Array<ITasks>;
-  to?: Array<ITasks>;
+  from?: ITasks;
+  to?: ITasks;
+}
+
+
+interface IStyle {
+  [property: string]: string;
 }

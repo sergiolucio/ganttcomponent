@@ -1,5 +1,4 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {__values} from 'tslib';
 
 @Component({
   selector: 'app-gantt-options-panel',

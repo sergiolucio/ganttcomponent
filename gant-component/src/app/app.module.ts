@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import { UiScrollModule } from 'ngx-ui-scroll';
 
 import { AppComponent } from './app.component';
 import { GanttComponent } from './component/gantt/gantt.component';
@@ -31,7 +32,8 @@ const appRoutes = [
     RouterModule.forRoot(appRoutes),
     FormsModule,
     BrowserAnimationsModule,
-    DragDropModule
+    DragDropModule,
+    UiScrollModule
   ],
   providers: [],
   bootstrap: [AppComponent]
