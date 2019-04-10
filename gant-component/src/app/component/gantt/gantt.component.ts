@@ -20,7 +20,7 @@ export class GanttComponent implements OnInit {
   @Output() maxRangeSelectedChange: EventEmitter<Date>;
 
   private _projects: IProjects;
-  private _projectsCount: number;
+  public projectsCounter: number;
 
   public tasksParentWidth: number;
   public tasksDescWidth: number;
@@ -28,6 +28,7 @@ export class GanttComponent implements OnInit {
   public tasksDivisionWidth: number;
   public grabber: boolean;
   public oldX: number;
+  public cellWidth: number;
 
   public scrollPosition: number;
 
@@ -39,13 +40,14 @@ export class GanttComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.tasksParentWidth = $('div.row.tables-container').width();
+    const myTasksParent = document.querySelector('div.row.tables-container');
+    this.tasksParentWidth = myTasksParent.clientWidth;
     this.tasksDescWidth = this.tasksParentWidth * 0.285;
     this.tasksWidth = this.tasksParentWidth * 0.7;
     this.tasksDivisionWidth = this.tasksParentWidth * 0.005;
     this.grabber = false;
 
-    this._projectsCount = 0;
+    this.projectsCounter = 0;
     this._projects = this._ganttUtilsService.generateProjects();
     if (this._projects) {
       for (const projKey of Object.keys(this._projects)) {
@@ -57,7 +59,9 @@ export class GanttComponent implements OnInit {
       this.scrollPosition = 0;
     }
 
-    console.log(this._projectsCount);
+    this.cellWidth = 50;
+
+    console.log(this.projectsCounter);
     console.log(this._projects);
   }
 
@@ -114,7 +118,7 @@ export class GanttComponent implements OnInit {
   }
 
   private _inspectProjects(project: IProject, mainProjectColor?: string): void {
-    this._projectsCount++; // só para imprimir na consola o número de items carregados
+    this.projectsCounter++; // só para imprimir na consola o número de items carregados
 
     project._hasTasks = project.tasks && Object.keys(project.tasks).length > 0;
     project._hasChildren = project.projectChildren && Object.keys(project.projectChildren).length > 0;
@@ -126,7 +130,7 @@ export class GanttComponent implements OnInit {
 
     if (project._hasTasks) {
       for (const taskKey of Object.keys(project.tasks)) {
-        this._projectsCount++; // só para imprimir na consola o número de items carregados
+        this.projectsCounter++; // só para imprimir na consola o número de items carregados
 
         project.tasks[taskKey]._descriptionStyle = {};
         project.tasks[taskKey]._descriptionStyle['border-left'] =
@@ -167,8 +171,7 @@ export class GanttComponent implements OnInit {
 
     const myDateFrom: Moment = moment(event.date.from);
 
-    console.log(myDateFrom.diff(myScaleHour, 'minutes'));
-    return (50 * myDateFrom.diff(myScaleHour, 'minutes')) / (this.hourScaleSelected * 60);
+    return (this.cellWidth * myDateFrom.diff(myScaleHour, 'minutes')) / (this.hourScaleSelected * 60);
   }
 
   private _findEventDuration(event: IProject | ITask): number {

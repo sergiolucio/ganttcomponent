@@ -8,9 +8,9 @@
 
   .row {
     min-width: 32rem;
-    box-sizing: content-box;
     border-bottom: 1px solid #d9dada;
     height: 2rem;
+    line-height: 2rem;
 
     > div {
       white-space: nowrap;
@@ -30,14 +30,10 @@
     &.body:hover {
       background-color: rgba(117, 119, 119, 0.2);
     }
-
-    &.header {
-      height: 7%;
-    }
   }
 
   .scroll-viewport {
-    height: 86%;
+    height: 26rem;
     min-width: 30rem;
     overflow-y: auto;
     overflow-anchor: none;

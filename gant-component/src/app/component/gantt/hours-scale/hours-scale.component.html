@@ -1,0 +1,32 @@
+<div id="tasks-content" class="container-fluid h-100 px-0">
+
+  <div id="background-layer" class="container-fluid px-0" [style.width.px]="dateCellWidth * totalDateRange.length">
+
+    <!--<div *uiScroll="let dateRange of dateRangeDataSource">-->
+
+
+      <ng-template ngFor let-date [ngForOf]="totalDateRange">
+        <div class="date-container" [style.width.px]="dateCellWidth">
+          <div class="date-cell text-center bg-light" [style.width.px]="dateCellWidth">{{date | date}}</div>
+          <div class="hours-cell text-center bg-light" *ngFor="let hour of scaleRange"
+               [style.width.px]="elmtCellWidth">{{hour | date: 'HH:mm'}}</div>
+        </div>
+      </ng-template>
+
+      <div class="tasks-container">
+
+        <div class="row mx-0" *uiScroll="let projKey of projectsKeysDataSource">
+          <ng-template ngFor let-date [ngForOf]="totalDateRange">
+            <div class="elmt-cell" *ngFor="let hour of scaleRange"
+                 [style.width.px]="elmtCellWidth"></div>
+          </ng-template>
+        </div>
+
+      </div>
+
+    <!--</div>-->
+
+  </div>
+
+
+</div>

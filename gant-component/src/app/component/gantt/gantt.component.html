@@ -30,14 +30,14 @@
              (mouseup)="turnOffGrabber($event)"
              [style.width.px]="tasksDivisionWidth"></div>
 
-        <div class="tasks-container px-0" [style.width.px]="tasksWidth">
-          <div [ngSwitch]="scaleState">
+        <div class="tasks-container h-100 px-0" [style.width.px]="tasksWidth">
+          <div [ngSwitch]="scaleState" class="h-100">
 
-            <div *ngSwitchCase="'hours'">
+            <div *ngSwitchCase="'hours'" class="h-100">
 
               <app-hours-scale
-                [scrollPosition]="scrollPosition"
-                (scrollPositionChange)="scrollPositionChanged($event)"
+                [elmtCellWidth]="cellWidth"
+                [itemsNumber]="projectsCounter"
                 [projectsObservable]="getProjects()"
                 [hourScaleSelected]="hourScaleSelected"
                 [minRangeSelected]="minRangeSelected"
