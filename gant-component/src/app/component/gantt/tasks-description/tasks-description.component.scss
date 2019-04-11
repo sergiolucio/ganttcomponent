@@ -35,6 +35,7 @@
   .scroll-viewport {
     height: 26rem;
     min-width: 30rem;
+    overflow-x: hidden;
     overflow-y: auto;
     overflow-anchor: none;
   }

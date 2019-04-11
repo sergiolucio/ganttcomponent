@@ -1,48 +1,74 @@
 #tasks-content {
   position: relative;
-  overflow: auto;
+  overflow: hidden;
 
-  #background-layer {
-    position: absolute;
+  #background-content {
+    position: relative;
+    overflow-x: auto;
+    overflow-y: hidden;
 
-    .date-container {
+    #background-layer {
+      position: absolute;
 
-      display: inline-block;
-      .date-cell, .hours-cell {
-        height: 2rem;
-        line-height: 2rem;
-        border: 1px solid #d9dada;
-        border-bottom: none;
-        border-right: none;
+      .date-container {
+
+        display: inline-block;
+        position: relative;
+        z-index: 10;
+
+        .date-cell, .hours-cell {
+          height: 2rem;
+          line-height: 2rem;
+          border: 1px solid #d9dada;
+          border-bottom: none;
+          border-right: none;
+        }
+
+        .hours-cell {
+          display: inline-block;
+          height: 2rem;
+          line-height: 2rem;
+          border: 1px solid #d9dada;
+          border-bottom: none;
+          border-right: none;
+        }
       }
 
-      .hours-cell {
-        display: inline-block;
-        height: 2rem;
-        line-height: 2rem;
-        border: 1px solid #d9dada;
-        border-bottom: none;
-        border-right: none;
-      }
+      .background-tasks-container {
+        height: 26rem;
+        overflow-y: auto;
 
-    }
+        .elmt-cell {
+          display: inline-block;
+          height: 2rem;
+          line-height: 2rem;
+          border: 1px solid #d9dada;
+          border-bottom: none;
+          border-right: none;
+          overflow-x: auto;
+          white-space: nowrap;
 
-    .tasks-container {
-      height: 26rem;
-      overflow-y: auto;
-
-      .elmt-cell {
-        display: inline-block;
-        height: 2rem;
-        line-height: 2rem;
-        border: 1px solid #d9dada;
-        border-bottom: none;
-        border-right: none;
-
-        &:hover {
-          background-color: rgba(169, 169, 169, 0.5);
+          &:hover {
+            background-color: rgba(169, 169, 169, 0.5);
+          }
         }
       }
     }
+
+  }
+
+  #projects-layer {
+    z-index: 5;
+    position: absolute;
+    top: 4rem;
+
+    div.project-cell {
+      height: 1.5rem;
+      border: 3px dimgray solid;
+      border-radius: 5px;
+      position: absolute;
+      overflow: hidden;
+    }
   }
 }
+

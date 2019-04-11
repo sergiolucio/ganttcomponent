@@ -21,6 +21,7 @@ export interface IProject {
   _detailsStyle?: IStyle;
   _projectStartPosition?: number;
   _projectDurationWidth?: number;
+  _projectItems?: number;
 }
 
 export interface ITasks {

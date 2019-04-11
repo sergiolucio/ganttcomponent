@@ -17,8 +17,8 @@ export class HoursScaleStateComponent implements OnInit {
 
   ngOnInit() {
     this.hourScaleSelected = 3;
-    this.minRangeSelected = moment().subtract(5, 'days').toDate();
-    this.maxRangeSelected = moment().add(5, 'days').toDate();
+    this.minRangeSelected = moment('00:00', 'HH:mm').subtract(5, 'days').toDate();
+    this.maxRangeSelected = moment('00:00', 'HH:mm').add(5, 'days').toDate();
   }
 
 }

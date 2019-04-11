@@ -22,6 +22,7 @@
       "check-operator",
       "check-separator",
       "check-type"
-    ]
+    ],
+    "no-string-literal": false
   }
 }

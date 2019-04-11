@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
 import {EScaleStates, IProject, IProjects, ITask} from './gantt.component.interface';
 import {Observable} from 'rxjs';
 import {GanttUtilsService} from '../../services/gantt.utils.service';
@@ -10,7 +10,7 @@ import {Moment} from 'moment';
   templateUrl: './gantt.component.html',
   styleUrls: ['./gantt.component.scss']
 })
-export class GanttComponent implements OnInit {
+export class GanttComponent implements OnInit, OnChanges {
   @Input() scaleState: EScaleStates;
   @Input() hourScaleSelected: number;
 
@@ -31,6 +31,7 @@ export class GanttComponent implements OnInit {
   public cellWidth: number;
 
   public scrollPosition: number;
+  private _itemsByProject: number;
 
   constructor(
     private _ganttUtilsService: GanttUtilsService
@@ -47,11 +48,15 @@ export class GanttComponent implements OnInit {
     this.tasksDivisionWidth = this.tasksParentWidth * 0.005;
     this.grabber = false;
 
+    this.cellWidth = 50;
+
     this.projectsCounter = 0;
     this._projects = this._ganttUtilsService.generateProjects();
     if (this._projects) {
       for (const projKey of Object.keys(this._projects)) {
+        this._itemsByProject = 0;
         this._inspectProjects(this._projects[projKey]);
+        this._projects[projKey]._projectItems = this._itemsByProject;
       }
     }
 
@@ -59,10 +64,27 @@ export class GanttComponent implements OnInit {
       this.scrollPosition = 0;
     }
 
-    this.cellWidth = 50;
-
     console.log(this.projectsCounter);
-    console.log(this._projects);
+  }
+
+  ngOnChanges({minRangeSelected, hourScaleSelected}: SimpleChanges): void {
+    if (minRangeSelected && !minRangeSelected.isFirstChange()) {
+      this.projectsCounter = 0;
+      for (const projKey of Object.keys(this._projects)) {
+        this._itemsByProject = 0;
+        this._inspectProjects(this._projects[projKey]);
+        this._projects[projKey]._projectItems = this._itemsByProject;
+      }
+    }
+
+    if (hourScaleSelected && !hourScaleSelected.isFirstChange()) {
+      this.projectsCounter = 0;
+      for (const projKey of Object.keys(this._projects)) {
+        this._itemsByProject = 0;
+        this._inspectProjects(this._projects[projKey]);
+        this._projects[projKey]._projectItems = this._itemsByProject;
+      }
+    }
   }
 
   // ======== código da barra separadora das tabelas - resizable
@@ -118,7 +140,8 @@ export class GanttComponent implements OnInit {
   }
 
   private _inspectProjects(project: IProject, mainProjectColor?: string): void {
-    this.projectsCounter++; // só para imprimir na consola o número de items carregados
+    this.projectsCounter++; // contador de items totais
+    this._itemsByProject++; // contador de items por projeto
 
     project._hasTasks = project.tasks && Object.keys(project.tasks).length > 0;
     project._hasChildren = project.projectChildren && Object.keys(project.projectChildren).length > 0;
@@ -127,10 +150,16 @@ export class GanttComponent implements OnInit {
     project._descriptionStyle['padding-left'] = project.genealogyDegree * 15 + 'px';
     project._projectStartPosition = this._findEventStart(project);
     project._projectDurationWidth = this._findEventDuration(project);
+    project._detailsStyle = {};
+    project._detailsStyle['margin-left'] = this._findEventStart(project) + 'px';
+    project._detailsStyle['width'] = this._findEventDuration(project) + 'px';
+    project._detailsStyle['margin-top'] = (((this.projectsCounter - 1) * 2) + 0.25) + 'rem';
+    project._detailsStyle['background-color'] = project.color;
 
     if (project._hasTasks) {
       for (const taskKey of Object.keys(project.tasks)) {
         this.projectsCounter++; // só para imprimir na consola o número de items carregados
+        this._itemsByProject++;
 
         project.tasks[taskKey]._descriptionStyle = {};
         project.tasks[taskKey]._descriptionStyle['border-left'] =
@@ -138,6 +167,11 @@ export class GanttComponent implements OnInit {
         project.tasks[taskKey]._descriptionStyle['padding-left'] = project.tasks[taskKey].genealogyDegree * 15 + 'px';
         project.tasks[taskKey]._taskStartPosition = this._findEventStart(project.tasks[taskKey]);
         project.tasks[taskKey]._taskDurationWidth = this._findEventDuration(project.tasks[taskKey]);
+        project.tasks[taskKey]._detailsStyle = {};
+        project.tasks[taskKey]._detailsStyle['margin-left'] = this._findEventStart(project.tasks[taskKey]) + 'px';
+        project.tasks[taskKey]._detailsStyle['width'] = this._findEventDuration(project.tasks[taskKey]) + 'px';
+        project.tasks[taskKey]._detailsStyle['margin-top'] = (((this.projectsCounter - 1) * 2) + 0.25) + 'rem';
+        project.tasks[taskKey]._detailsStyle['background-color'] = project.tasks[taskKey].color;
       }
     }
 
@@ -150,36 +184,31 @@ export class GanttComponent implements OnInit {
 
   private _findEventStart(event: IProject | ITask): number {
 
-    let myScaleHour: Date;
-
-    const resetDate: string = moment(event.date.from).format('DD-MM-YYYY');
-
-    for (
-      const i = moment(resetDate + ' 00:00', 'DD-MM-YYYY HH:mm');
-      i < moment(resetDate + ' 24:00', 'DD-MM-YYYY HH:mm');
-      i.add(this.hourScaleSelected, 'hours')
-    ) {
-      if (i >= moment(event.date.from, 'HH:mm')) {
-        if (!myScaleHour) {
-          myScaleHour = i.toDate();
-        }
-        break;
-      }
-
-      myScaleHour = i.toDate();
-    }
+    const initDate: Moment = moment(this.minRangeSelected);
 
     const myDateFrom: Moment = moment(event.date.from);
 
-    return (this.cellWidth * myDateFrom.diff(myScaleHour, 'minutes')) / (this.hourScaleSelected * 60);
+    if (myDateFrom.diff(initDate, 'minutes') <= 0) {
+      return 0;
+    }
+
+    return (this.cellWidth * myDateFrom.diff(initDate, 'minutes')) / (this.hourScaleSelected * 60);
   }
 
   private _findEventDuration(event: IProject | ITask): number {
 
-    const myDateFrom: Moment = moment(event.date.from);
+    let myDateFrom: Moment = moment(event.date.from);
     const myDateTo: Moment = moment(event.date.to);
 
-    return (50 * (myDateTo.diff(myDateFrom, 'minutes') + 60)) / (this.hourScaleSelected * 60);
+    if (moment(this.minRangeSelected) > myDateFrom) {
+      myDateFrom = moment(this.minRangeSelected);
+    }
+
+    if (myDateTo.diff(myDateFrom, 'minutes') <= 0) {
+      return 0;
+    }
+
+    return (this.cellWidth * (myDateTo.diff(myDateFrom, 'minutes'))) / (this.hourScaleSelected * 60);
   }
 
 

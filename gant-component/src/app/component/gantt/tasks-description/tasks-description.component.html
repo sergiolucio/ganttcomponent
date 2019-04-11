@@ -17,10 +17,13 @@
   <div cdkDropList (cdkDropListDropped)="drop($event)">
 
     <div class="scroll-viewport" #scrollViewPort>
-      <div *uiScroll="let projectKey of datasource" cdkDrag [cdkDragData]="projectKey">
 
-        <ng-container *ngTemplateOutlet="templateProject; context: {project: projects[projectKey]}"></ng-container>
+      <div class="scroll-viewport-content" [style.margin-top.px]="freeSpaceTop">
+        <div *ngFor="let projectKey of projectsKeysDatasource" cdkDrag [cdkDragData]="projectKey">
 
+          <ng-container *ngTemplateOutlet="templateProject; context: {project: projects[projectKey]}"></ng-container>
+
+        </div>
       </div>
     </div>
 
@@ -61,27 +64,22 @@
   </div>
 
   <ng-template [ngIf]="project._hasTasks && !project.collapsed">
-
     <div cdkDropList (cdkDropListDropped)="dropInside($event)" [cdkDropListData]="project.tasks">
-
       <div *ngFor="let task of project.tasks | keyvalue" cdkDrag [cdkDragData]="project.tasks[task.key]">
         <ng-container
           *ngTemplateOutlet="templateTask; context: { task: task.value }"></ng-container>
       </div>
-
     </div>
-
   </ng-template>
 
   <ng-template [ngIf]="project._hasChildren && !project.collapsed">
-
     <div cdkDropList (cdkDropListDropped)="dropInside($event)" [cdkDropListData]="project.projectChildren">
-      <div *ngFor="let proj of project.projectChildren | keyvalue" cdkDrag [cdkDragData]="project.projectChildren[proj.key]">
+      <div *ngFor="let proj of project.projectChildren | keyvalue" cdkDrag
+           [cdkDragData]="project.projectChildren[proj.key]">
         <ng-container
           *ngTemplateOutlet="templateProject; context: { project: proj.value }"></ng-container>
       </div>
     </div>
-
   </ng-template>
 
 </ng-template>
