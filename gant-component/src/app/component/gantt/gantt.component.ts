@@ -148,13 +148,15 @@ export class GanttComponent implements OnInit, OnChanges {
     project._descriptionStyle = {};
     project._descriptionStyle['border-left'] = mainProjectColor ? '3px solid ' + mainProjectColor : '3px solid ' + project.color;
     project._descriptionStyle['padding-left'] = project.genealogyDegree * 15 + 'px';
-    project._projectStartPosition = this._findEventStart(project);
-    project._projectDurationWidth = this._findEventDuration(project);
     project._detailsStyle = {};
     project._detailsStyle['margin-left'] = this._findEventStart(project) + 'px';
-    project._detailsStyle['width'] = this._findEventDuration(project) + 'px';
-    project._detailsStyle['margin-top'] = (((this.projectsCounter - 1) * 2) + 0.25) + 'rem';
     project._detailsStyle['background-color'] = project.color;
+    if (this._findEventDuration(project) > 0) {
+      project._detailsStyle['width'] = this._findEventDuration(project) + 'px';
+      project._detailsStyle['border'] = '1px dimgray solid';
+    } else {
+      project._detailsStyle['width'] = this._findEventDuration(project) + 'px';
+    }
 
     if (project._hasTasks) {
       for (const taskKey of Object.keys(project.tasks)) {
@@ -169,9 +171,13 @@ export class GanttComponent implements OnInit, OnChanges {
         project.tasks[taskKey]._taskDurationWidth = this._findEventDuration(project.tasks[taskKey]);
         project.tasks[taskKey]._detailsStyle = {};
         project.tasks[taskKey]._detailsStyle['margin-left'] = this._findEventStart(project.tasks[taskKey]) + 'px';
-        project.tasks[taskKey]._detailsStyle['width'] = this._findEventDuration(project.tasks[taskKey]) + 'px';
-        project.tasks[taskKey]._detailsStyle['margin-top'] = (((this.projectsCounter - 1) * 2) + 0.25) + 'rem';
         project.tasks[taskKey]._detailsStyle['background-color'] = project.tasks[taskKey].color;
+        if (this._findEventDuration(project) > 0) {
+          project.tasks[taskKey]._detailsStyle['width'] = this._findEventDuration(project.tasks[taskKey]) + 'px';
+          project.tasks[taskKey]._detailsStyle['border'] = '1px dimgray solid';
+        } else {
+          project.tasks[taskKey]._detailsStyle['width'] = this._findEventDuration(project.tasks[taskKey]) + 'px';
+        }
       }
     }
 

@@ -60,13 +60,12 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
     this._initVirtualScroll();
   }
 
-  ngOnChanges({scrollPosition}: SimpleChanges): void {
+  ngOnChanges({scrollPosition, projectsObservable}: SimpleChanges): void {
     if (scrollPosition && !scrollPosition.isFirstChange()) {
       this.scrollPosition = scrollPosition.currentValue;
       document.querySelector('.scroll-viewport').scroll(0, scrollPosition.currentValue);
     }
   }
-
 
   ngOnDestroy(): void {
     this._subscription.unsubscribe();
@@ -75,6 +74,7 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
 
   public toggleCollapseProject(projectClicked: IProject): void {
     projectClicked.collapsed = !projectClicked.collapsed;
+    this._initVirtualScroll();
   }
 
   public drop(event: CdkDragDrop<string[]>) {
@@ -129,18 +129,24 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
     if (this._scrollHistory < myScrollTop) {
       this._scrollHistory = myScrollTop;
 
-      if (
-        myScrollTop > this._excessHeight + this.projects[this.projectsKeysDatasource[0]]._projectItems * 32 &&
-        (myScrollHeight - myScrollTop - myScrollViewPortHeight) <
+      // verificar se o projeto está collapsed
+      if (this.projects[this.projectsKeysDatasource[0]].collapsed) {
+        
+      } else {
+
+        if (
+          myScrollTop > this._excessHeight + this.projects[this.projectsKeysDatasource[0]]._projectItems * 32 &&
+          (myScrollHeight - myScrollTop - myScrollViewPortHeight) <
           this._excessHeight +
           this.projects[this.projectsKeysDatasource[this.projectsKeysDatasource.length - 1]]._projectItems * 32 &&
-        this.projectsKeysDatasource[this.projectsKeysDatasource.length - 1] !== this._projectsKeys[this._projectsKeys.length - 1]
-      ) {
-        this._indexMax++;
-        this._indexMin++;
-        this.projectsKeysDatasource.push(this._projectsKeys[this._indexMax]);
-        this.freeSpaceTop += this.projects[this.projectsKeysDatasource[0]]._projectItems * 32;
-        this.projectsKeysDatasource.shift();
+          this.projectsKeysDatasource[this.projectsKeysDatasource.length - 1] !== this._projectsKeys[this._projectsKeys.length - 1]
+        ) {
+          this._indexMax++;
+          this._indexMin++;
+          this.projectsKeysDatasource.push(this._projectsKeys[this._indexMax]);
+          this.freeSpaceTop += this.projects[this.projectsKeysDatasource[0]]._projectItems * 32;
+          this.projectsKeysDatasource.shift();
+        }
       }
 
     } else {
@@ -161,8 +167,7 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  private _initVirtualScroll() {
-
+  private _initVirtualScroll(goToX: number = 0, goToY: number = 0) {
     const myScrollViewPortHeight: number = document.querySelector('.scroll-viewport').clientHeight;
 
     let myRenderedHeight = 0;
@@ -173,8 +178,12 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
     for (i = 0; myRenderedHeight < myScrollViewPortHeight; i++) {
       this.projectsKeysDatasource.push(this._projectsKeys[i]);
 
-      myRenderedHeight += this.projects[this._projectsKeys[i]]._projectItems * 32;
-      // _projectItems tem o nº total de items por project; 32 é o nº de px por row
+      if (this.projects[this._projectsKeys[i]].collapsed) {
+        myRenderedHeight += 32;
+      } else {
+        myRenderedHeight += this.projects[this._projectsKeys[i]]._projectItems * 32;
+        // _projectItems tem o nº total de items por project; 32 é o nº de px por row
+      }
     }
 
     this.projectsKeysDatasource.push(this._projectsKeys[i]);
@@ -185,6 +194,6 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
     this._indexMax = this.projectsKeysDatasource.length - 1;
     this._excessHeight = myRenderedHeight - myScrollViewPortHeight;
 
-    document.querySelector('.scroll-viewport').scroll(0, 0);
+    document.querySelector('.scroll-viewport').scroll(goToX, goToY);
   }
 }

@@ -1,3 +1,4 @@
+
 <div id="tasks-content" class="container-fluid h-100 px-0">
   <div id="background-content" #horizontalScrollViewPort class="container-fluid h-100 px-0">
 
@@ -17,7 +18,7 @@
 
         <div class="background-tasks-content" [style.margin-top.px]="freeSpaceTop">
           <ng-template ngFor let-projKey [ngForOf]="projectsKeysDatasource">
-            <ng-container *ngTemplateOutlet="rowProjectTemplate; context: {item: projects[projKey]}"></ng-container>
+            <ng-container *ngTemplateOutlet="projectTemplate; context: {item: projects[projKey]}"></ng-container>
           </ng-template>
         </div>
       </div>
@@ -27,62 +28,15 @@
 
   </div>
 
-  <div id="projects-layer" class="container-fluid px-0">
-
-    <div class="projects-layer-content">
-
-      <ng-template ngFor let-projKey [ngForOf]="projectsKeysDatasource">
-        <ng-container *ngTemplateOutlet="projectTemplate; context: {item: projects[projKey]}"></ng-container>
-      </ng-template>
-
-    </div>
-
-  </div>
 </div>
 
-<!--==================================================================-->
-
-<ng-template #rowProjectTemplate let-item="item">
-  <div class="row mx-0">
-    <ng-template ngFor let-date [ngForOf]="totalDateRange">
-
-      <div class="elmt-cell" *ngFor="let hour of scaleRange"
-           [style.width.px]="elmtCellWidth"></div>
-
-    </ng-template>
-  </div>
-
-  <ng-template [ngIf]="item._hasTasks && !item.collapsed">
-    <ng-container *ngTemplateOutlet="rowTaskTemplate; context: {tasks: item.tasks}"></ng-container>
-  </ng-template>
-
-  <ng-template [ngIf]="item._hasChildren && !item.collapsed">
-    <ng-template ngFor let-proj [ngForOf]="item.projectChildren | keyvalue">
-      <ng-container *ngTemplateOutlet="rowProjectTemplate; context: {item: proj.value}"></ng-container>
-    </ng-template>
-  </ng-template>
-
-</ng-template>
-
-<ng-template #rowTaskTemplate let-tasks="tasks">
-  <div class="row mx-0" *ngFor="let task of tasks | keyvalue">
-    <ng-template ngFor let-date [ngForOf]="totalDateRange">
-
-      <div class="elmt-cell" *ngFor="let hour of scaleRange"
-           [style.width.px]="elmtCellWidth"></div>
-
-    </ng-template>
-  </div>
-</ng-template>
 
 <!--==================================================================-->
 
 <ng-template #projectTemplate let-item="item">
   <div class="project-cell"
-       *ngIf="item._detailsStyle['width'] !== '0px'"
        [ngStyle]="item._detailsStyle"
-       [style.left.px]="-verticalScrollPositionX"
-       [style.top.px]="-verticalScrollPositionY">{{item.name}}</div>
+       [style.left.px]="-scrollFreeSpaceLeft">{{item.name}}</div>
 
   <ng-template [ngIf]="item._hasTasks && !item.collapsed">
     <ng-container *ngTemplateOutlet="taskTemplate; context: {tasks: item.tasks}"></ng-container>
@@ -98,9 +52,7 @@
 <ng-template #taskTemplate let-tasks="tasks">
   <ng-template ngFor let-task [ngForOf]="tasks | keyvalue">
     <div class="project-cell"
-         *ngIf="task.value._detailsStyle['width'] !== '0px'"
          [ngStyle]="task.value._detailsStyle"
-         [style.left.px]="-verticalScrollPositionX"
-         [style.top.px]="-verticalScrollPositionY">{{task.value.name}}</div>
+         [style.left.px]="-scrollFreeSpaceLeft">{{task.value.name}}</div>
   </ng-template>
 </ng-template>

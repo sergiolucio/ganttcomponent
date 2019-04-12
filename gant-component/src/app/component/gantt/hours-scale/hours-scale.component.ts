@@ -300,7 +300,10 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
         this._indexMax++;
         this._indexMin++;
         this.projectsKeysDatasource.push(this._projectsKeys[this._indexMax]);
-        this.freeSpaceTop += this.projects[this.projectsKeysDatasource[0]]._projectItems * 32;
+        if (this.freeSpaceTop === 0) {
+          this.freeSpaceTop += 8;
+        }
+        this.freeSpaceTop += (this.projects[this.projectsKeysDatasource[0]]._projectItems * 32); // 32 são as rows visíveis
         this.projectsKeysDatasource.shift();
       }
 
@@ -315,7 +318,10 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
         this._indexMax--;
         this._indexMin--;
         this.projectsKeysDatasource.unshift(this._projectsKeys[this._indexMin]);
-        this.freeSpaceTop -= this.projects[this.projectsKeysDatasource[0]]._projectItems * 32;
+        this.freeSpaceTop -= (this.projects[this.projectsKeysDatasource[0]]._projectItems * 32);
+        if (this.freeSpaceTop === 8) {
+          this.freeSpaceTop = 0;
+        }
         this.projectsKeysDatasource.pop();
       }
 
