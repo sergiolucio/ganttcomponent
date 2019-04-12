@@ -21,6 +21,7 @@ export class GanttComponent implements OnInit, OnChanges {
 
   private _projects: IProjects;
   public projectsCounter: number;
+  public itemCollapsedEvt: boolean;
 
   public tasksParentWidth: number;
   public tasksDescWidth: number;
@@ -59,6 +60,8 @@ export class GanttComponent implements OnInit, OnChanges {
         this._projects[projKey]._projectItems = this._itemsByProject;
       }
     }
+
+    this.itemCollapsedEvt = false;
 
     if (!this.scrollPosition) {
       this.scrollPosition = 0;
@@ -228,5 +231,9 @@ export class GanttComponent implements OnInit, OnChanges {
 
   public scrollPositionChanged(value: number): void {
     this.scrollPosition = value;
+  }
+
+  public itemCollapsedEvtFired(value: boolean): void {
+    this.itemCollapsedEvt = value;
   }
 }

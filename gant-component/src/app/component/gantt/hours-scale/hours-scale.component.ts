@@ -29,6 +29,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
   public projects: IProjects;
   private _projectsKeys: Array<string>;
   public projectsKeysDatasource: Array<string>;
+  @Input() itemCollapsedEvt: boolean;
 
   @Input() minRangeSelected: Date;
   @Output() minRangeSelectedChange: EventEmitter<Date>;
@@ -72,6 +73,8 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
       this.projects = value;
     });
 
+    this.itemCollapsedEvt = false;
+
     this._projectsKeys = [];
     for (const projKey of Object.keys(this.projects)) {
       this._projectsKeys.push(projKey);
@@ -97,7 +100,8 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
       minRangeSelected,
       maxRangeSelected,
       verticalScrollPositionY,
-      horizontalScrollContainerWidth
+      horizontalScrollContainerWidth,
+      itemCollapsedEvt
     }: SimpleChanges
   ): void {
 
@@ -151,6 +155,13 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     if (horizontalScrollContainerWidth && !horizontalScrollContainerWidth.isFirstChange()) {
       this.scrollFreeSpaceLeft = 0;
       this._initHorizontalVirtualScroll();
+    }
+
+    if (itemCollapsedEvt && !itemCollapsedEvt.isFirstChange()) {
+      if (itemCollapsedEvt.currentValue === true) {
+        this._refreshVerticalVirtualScroll();
+      }
+      this.itemCollapsedEvt = false;
     }
   }
 
@@ -210,6 +221,30 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     this.freeSpaceTop = 0;
 
     document.querySelector('.scroll-viewport').scroll(0, 0);
+  }
+
+  private _refreshVerticalVirtualScroll(): void {
+    this.projectsKeysDatasource = [];
+    let myRenderedHeight = 0;
+    const myScrollViewPortHeight: number = document.querySelector('.scroll-viewport').clientHeight;
+
+    let i: number;
+    i = this._indexMin;
+
+    do {
+      this.projectsKeysDatasource.push(this._projectsKeys[i]);
+
+      if (this.projects[this._projectsKeys[i]].collapsed) {
+        myRenderedHeight += 32;
+      } else {
+        myRenderedHeight += this.projects[this._projectsKeys[i]]._projectItems * 32;
+        // _projectItems tem o nº total de items por project; 32 é o nº de px por row
+      }
+
+      i++;
+    } while (myRenderedHeight <= myScrollViewPortHeight);
+
+    this._indexMax = (this.projectsKeysDatasource.length - 1) + this._indexMin;
   }
 
   @ViewChild('horizontalScrollViewPort')
@@ -275,85 +310,97 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
 
   private _verticalScrollEventHandler(event: Event) {
 
-    const myScrollTop: number = (event.target as HTMLElement).scrollTop;
-    const myScrollHeight: number = (event.target as HTMLElement).scrollHeight;
-    const myScrollViewPortHeight: number = this._verticalScrollViewPort.clientHeight;
+    const myFnEventHandler = () => {
+      const myScrollTop: number = (event.target as HTMLElement).scrollTop;
+      const myScrollHeight: number = (event.target as HTMLElement).scrollHeight;
+      const myScrollViewPortHeight: number = this._verticalScrollViewPort.clientHeight;
 
 
-    this.verticalScrollPositionY = myScrollTop;
-    this.verticalScrollPositionChange.emit(myScrollTop);
+      this.verticalScrollPositionY = myScrollTop;
+      this.verticalScrollPositionChange.emit(myScrollTop);
 
-    // verificar se o scroll esta a subir ou a descer
-    if (this._verticalScrollHistory < myScrollTop) {
-      this._verticalScrollHistory = myScrollTop;
+      // verificar se o scroll esta a subir ou a descer
+      if (this._verticalScrollHistory < myScrollTop) {
+        this._verticalScrollHistory = myScrollTop;
 
-      // 1º preciso de saber se o elemento que vai desaparecer ainda se encontra visível
-      // (scrollTop > que primeiro elemento + this.freeSpaceTop)
-      // se já não se encontrar visível pode desaparecer
+        // 1º preciso de saber se o elemento que vai desaparecer ainda se encontra visível
+        // (scrollTop > que primeiro elemento + this.freeSpaceTop)
+        // se já não se encontrar visível pode desaparecer
 
-      let myFirstElmtHeight: number;
-      // verificar se o projeto está collapsed
-      if (this.projects[this.projectsKeysDatasource[0]].collapsed) {
-        myFirstElmtHeight = 32; // 32px é a altura de cada row
-      } else {
-        myFirstElmtHeight = this.projects[this.projectsKeysDatasource[0]]._projectItems * 32;
-      }
-
-      if (myFirstElmtHeight + this.freeSpaceTop < myScrollTop) {
-        this.projectsKeysDatasource.shift();
-        this._indexMin++;
-        this.freeSpaceTop += myFirstElmtHeight;
-      }
-
-      // 2º preciso de saber se ainda tenho elementos no fundo
-      // se já não tiver preciso de renderizar mais -> verificar se há mais a renderizar (this._indexMax < último elemento de this.projects)
-      // scrollHeight - scrollTop - scrollViewPortHeight > 0 -> ou mais alguns pixeis de segurança
-
-      if (myScrollHeight - myScrollTop - myScrollViewPortHeight <= 30 && this._indexMax < this._projectsKeys.length - 1) {
-        this._indexMax++;
-        this.projectsKeysDatasource.push(this._projectsKeys[this._indexMax]);
-      }
-
-    } else {
-      this._verticalScrollHistory = myScrollTop;
-
-      // 1º preciso de saber se o elemento que vai desaparecer ainda se encontra visível
-      // (scrollHeight - scrollTop - scrollViewPortHeight > altura do último elemento)
-      // se já não se encontrar visível pode desaparecer
-
-      let myLastElmtHeight: number;
-
-      if (this.projects[this.projectsKeysDatasource[this.projectsKeysDatasource.length - 1]].collapsed) {
-        myLastElmtHeight = 32;
-      } else {
-        myLastElmtHeight = this.projects[this.projectsKeysDatasource[this.projectsKeysDatasource.length - 1]]._projectItems * 32;
-      }
-
-      if (myScrollHeight - myScrollTop - myScrollViewPortHeight > myLastElmtHeight) {
-        this.projectsKeysDatasource.pop();
-        this._indexMax--;
-      }
-
-      // 2º preciso de saber se ainda tenho elementos no topo
-      // se já não tiver preciso de renderizar mais -> verificar se há mais a renderizar (this._indexMin > 0
-      // scrollTop = this.freeSpaceTop -> ou mais alguns pixeis de segurança
-      // logo após renderizar o elemento preciso de retirar a altura correspondente ao mesmo ao freeSpaceTop
-
-      if (myScrollTop <= this.freeSpaceTop + 30 && this._indexMin > 0) {
-
-        this._indexMin--;
-        this.projectsKeysDatasource.unshift(this._projectsKeys[this._indexMin]);
-        let myElmtAdded: number;
-
+        let myFirstElmtHeight: number;
+        // verificar se o projeto está collapsed
         if (this.projects[this.projectsKeysDatasource[0]].collapsed) {
-          myElmtAdded = 32;
+          myFirstElmtHeight = 32; // 32px é a altura de cada row
         } else {
-          myElmtAdded = this.projects[this.projectsKeysDatasource[0]]._projectItems * 32;
+          myFirstElmtHeight = this.projects[this.projectsKeysDatasource[0]]._projectItems * 32;
         }
 
-        this.freeSpaceTop -= myElmtAdded;
+        if (myFirstElmtHeight + this.freeSpaceTop < myScrollTop) {
+          this.projectsKeysDatasource.shift();
+          this._indexMin++;
+          if (this.freeSpaceTop === 0) {
+            this.freeSpaceTop += 8;
+          }
+          this.freeSpaceTop += myFirstElmtHeight;
+        }
+
+        // 2º preciso de saber se ainda tenho elementos no fundo
+        // se já não tiver preciso de renderizar mais -> verificar se há mais a renderizar (this._indexMax < último elemento de this.projects)
+        // scrollHeight - scrollTop - scrollViewPortHeight > 0 -> ou mais alguns pixeis de segurança
+
+        if (myScrollHeight - myScrollTop - myScrollViewPortHeight <= 30 && this._indexMax < this._projectsKeys.length - 1) {
+          this._indexMax++;
+          this.projectsKeysDatasource.push(this._projectsKeys[this._indexMax]);
+        }
+
+      } else {
+        this._verticalScrollHistory = myScrollTop;
+
+        // 1º preciso de saber se o elemento que vai desaparecer ainda se encontra visível
+        // (scrollHeight - scrollTop - scrollViewPortHeight > altura do último elemento)
+        // se já não se encontrar visível pode desaparecer
+
+        let myLastElmtHeight: number;
+
+        if (this.projects[this.projectsKeysDatasource[this.projectsKeysDatasource.length - 1]].collapsed) {
+          myLastElmtHeight = 32;
+        } else {
+          myLastElmtHeight = this.projects[this.projectsKeysDatasource[this.projectsKeysDatasource.length - 1]]._projectItems * 32;
+        }
+
+        if (myScrollHeight - myScrollTop - myScrollViewPortHeight > myLastElmtHeight) {
+          this.projectsKeysDatasource.pop();
+          this._indexMax--;
+        }
+
+        // 2º preciso de saber se ainda tenho elementos no topo
+        // se já não tiver preciso de renderizar mais -> verificar se há mais a renderizar (this._indexMin > 0
+        // scrollTop = this.freeSpaceTop -> ou mais alguns pixeis de segurança
+        // logo após renderizar o elemento preciso de retirar a altura correspondente ao mesmo ao freeSpaceTop
+
+        if (myScrollTop <= this.freeSpaceTop + 30 && this._indexMin > 0) {
+
+          this._indexMin--;
+          this.projectsKeysDatasource.unshift(this._projectsKeys[this._indexMin]);
+          let myElmtAdded: number;
+
+          if (this.projects[this.projectsKeysDatasource[0]].collapsed) {
+            myElmtAdded = 32;
+          } else {
+            myElmtAdded = this.projects[this.projectsKeysDatasource[0]]._projectItems * 32;
+          }
+
+          this.freeSpaceTop -= myElmtAdded;
+          if (this.freeSpaceTop <= 8) {
+            this.freeSpaceTop = 0;
+          }
+        }
       }
-    }
+    };
+
+    myFnEventHandler();
+
+    setTimeout(myFnEventHandler, 300);
   }
 
   private _attachVerticalScrollEvent(): void {

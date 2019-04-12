@@ -28,19 +28,21 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
   public projects: IProjects;
   private _projectsKeys: Array<string>;
   public projectsKeysDatasource: Array<string>;
+  @Output() itemCollapsedEvt: EventEmitter<boolean>;
+  private _itemCollapsedEvtAux: boolean;
 
   @Input() scrollPosition: number;
   @Output() scrollPositionChange: EventEmitter<number>;
 
   private _scrollViewPort: HTMLElement;
   private _scrollHistory: number;
-  private _excessHeight: number;
   public freeSpaceTop: number;
   private _indexMax: number; // histórico do index dos items adicionados quando o scroll aumenta
   private _indexMin: number; // histórico do index dos items adicionados quando o scroll diminui
 
   constructor() {
     this.scrollPositionChange = new EventEmitter<number>();
+    this.itemCollapsedEvt = new EventEmitter<boolean>();
   }
 
   ngOnInit() {
@@ -54,6 +56,8 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
     for (const projKey of Object.keys(this.projects)) {
       this._projectsKeys.push(projKey);
     }
+
+    this._itemCollapsedEvtAux = false;
 
     this._scrollHistory = 0;
     this._initVirtualScroll();
@@ -74,6 +78,8 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
   public toggleCollapseProject(projectClicked: IProject): void {
     projectClicked.collapsed = !projectClicked.collapsed;
     this._refreshVirtualScroll();
+    this._itemCollapsedEvtAux = !this._itemCollapsedEvtAux;
+    this.itemCollapsedEvt.emit(this._itemCollapsedEvtAux);
   }
 
   public drop(event: CdkDragDrop<string[]>) {

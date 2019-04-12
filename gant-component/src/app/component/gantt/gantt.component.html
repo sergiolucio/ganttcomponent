@@ -12,8 +12,8 @@
       <div class="row h-100 tables-container" (mousemove)="resizeTables($event)">
 
         <div class="tasks-description-container h-100 px-0" [style.width.px]="tasksDescWidth">
-
          <app-tasks-description
+           (itemCollapsedEvt)="itemCollapsedEvtFired($event)"
            [scrollPosition]="scrollPosition"
            (scrollPositionChange)="scrollPositionChanged($event)"
            [projectsObservable]="getProjects()"></app-tasks-description>
@@ -36,6 +36,7 @@
             <div *ngSwitchCase="'hours'" class="h-100">
 
               <app-hours-scale
+                [itemCollapsedEvt]="itemCollapsedEvt"
                 [verticalScrollPositionY]="scrollPosition"
                 (verticalScrollPositionChange)="scrollPositionChanged($event)"
                 [horizontalScrollContainerWidth]="tasksWidth"
