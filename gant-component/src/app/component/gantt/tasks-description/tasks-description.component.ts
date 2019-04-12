@@ -74,7 +74,7 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
 
   public toggleCollapseProject(projectClicked: IProject): void {
     projectClicked.collapsed = !projectClicked.collapsed;
-    this._initVirtualScroll();
+    this._refreshVirtualScroll();
   }
 
   public drop(event: CdkDragDrop<string[]>) {
@@ -188,25 +188,14 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
         this.projectsKeysDatasource.unshift(this._projectsKeys[this._indexMin]);
         let myElmtAdded: number;
 
-        if (this.projects[this._projectsKeys[0]].collapsed) {
+        if (this.projects[this.projectsKeysDatasource[0]].collapsed) {
           myElmtAdded = 32;
         } else {
-          myElmtAdded = this.projects[this._projectsKeys[0]]._projectItems * 32;
+          myElmtAdded = this.projects[this.projectsKeysDatasource[0]]._projectItems * 32;
         }
 
         this.freeSpaceTop -= myElmtAdded;
       }
-        /*if (
-          myScrollTop > this.projects[this.projectsKeysDatasource[0]]._projectItems * 32 &&
-          (myScrollHeight - myScrollTop - myScrollViewPortHeight) > this.projects[this.projectsKeysDatasource[this.projectsKeysDatasource.length - 1]]._projectItems * 32 &&
-          this.projectsKeysDatasource[0] !== this._projectsKeys[0]
-        ) {
-          this._indexMax--;
-          this._indexMin--;
-          this.projectsKeysDatasource.unshift(this._projectsKeys[this._indexMin]);
-          this.freeSpaceTop -= this.projects[this.projectsKeysDatasource[0]]._projectItems * 32;
-          this.projectsKeysDatasource.pop();
-        }*/
     }
   }
 
@@ -218,7 +207,7 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
     this.projectsKeysDatasource = [];
 
     let i: number;
-    for (i = 0; myRenderedHeight < myScrollViewPortHeight; i++) {
+    for (i = 0; myRenderedHeight <= myScrollViewPortHeight; i++) {
       this.projectsKeysDatasource.push(this._projectsKeys[i]);
 
       if (this.projects[this._projectsKeys[i]].collapsed) {
@@ -229,14 +218,34 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
       }
     }
 
-    this.projectsKeysDatasource.push(this._projectsKeys[i]);
-    i++;
-    this.projectsKeysDatasource.push(this._projectsKeys[i]);
-
     this._indexMin = 0;
     this._indexMax = this.projectsKeysDatasource.length - 1;
-    this._excessHeight = myRenderedHeight - myScrollViewPortHeight;
+    this.freeSpaceTop = 0;
 
     document.querySelector('.scroll-viewport').scroll(goToX, goToY);
+  }
+
+  private _refreshVirtualScroll(): void {
+    this.projectsKeysDatasource = [];
+    let myRenderedHeight = 0;
+    const myScrollViewPortHeight: number = document.querySelector('.scroll-viewport').clientHeight;
+
+    let i: number;
+    i = this._indexMin;
+
+    do {
+      this.projectsKeysDatasource.push(this._projectsKeys[i]);
+
+      if (this.projects[this._projectsKeys[i]].collapsed) {
+        myRenderedHeight += 32;
+      } else {
+        myRenderedHeight += this.projects[this._projectsKeys[i]]._projectItems * 32;
+        // _projectItems tem o nº total de items por project; 32 é o nº de px por row
+      }
+
+      i++;
+    } while (myRenderedHeight <= myScrollViewPortHeight);
+
+    this._indexMax = (this.projectsKeysDatasource.length - 1) + this._indexMin;
   }
 }
