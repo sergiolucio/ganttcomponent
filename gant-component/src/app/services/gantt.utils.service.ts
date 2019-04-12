@@ -17,7 +17,7 @@ export class GanttUtilsService {
     let projectData: IProjects;
     projectData = {};
 
-    for (let j = 0; j < 120; j++) {
+    for (let j = 0; j < 1; j++) {
 
       for (let i = 1; i < 10; i++) {
 

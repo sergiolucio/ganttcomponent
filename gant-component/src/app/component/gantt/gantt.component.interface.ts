@@ -19,8 +19,6 @@ export interface IProject {
   collapsed: boolean;
   _descriptionStyle?: IStyle;
   _detailsStyle?: IStyle;
-  _projectStartPosition?: number;
-  _projectDurationWidth?: number;
   _projectItems?: number;
 }
 
@@ -38,8 +36,6 @@ export interface ITask {
   collapsed: boolean;
   _descriptionStyle?: IStyle;
   _detailsStyle?: IStyle;
-  _taskStartPosition?: number;
-  _taskDurationWidth?: number;
 }
 
 export interface IDate {

@@ -167,8 +167,6 @@ export class GanttComponent implements OnInit, OnChanges {
         project.tasks[taskKey]._descriptionStyle['border-left'] =
           mainProjectColor ? '3px solid ' + mainProjectColor : '3px solid ' + project.color;
         project.tasks[taskKey]._descriptionStyle['padding-left'] = project.tasks[taskKey].genealogyDegree * 15 + 'px';
-        project.tasks[taskKey]._taskStartPosition = this._findEventStart(project.tasks[taskKey]);
-        project.tasks[taskKey]._taskDurationWidth = this._findEventDuration(project.tasks[taskKey]);
         project.tasks[taskKey]._detailsStyle = {};
         project.tasks[taskKey]._detailsStyle['margin-left'] = this._findEventStart(project.tasks[taskKey]) + 'px';
         project.tasks[taskKey]._detailsStyle['background-color'] = project.tasks[taskKey].color;
