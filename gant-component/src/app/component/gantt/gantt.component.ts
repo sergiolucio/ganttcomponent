@@ -21,7 +21,7 @@ export class GanttComponent implements OnInit, OnChanges {
 
   private _projects: IProjects;
   public projectsCounter: number;
-  public itemCollapsedEvt: boolean;
+  public itemDraggedOrCollapsedEvt: boolean;
 
   public tasksParentWidth: number;
   public tasksDescWidth: number;
@@ -61,7 +61,7 @@ export class GanttComponent implements OnInit, OnChanges {
       }
     }
 
-    this.itemCollapsedEvt = false;
+    this.itemDraggedOrCollapsedEvt = false;
 
     if (!this.scrollPosition) {
       this.scrollPosition = 0;
@@ -218,7 +218,6 @@ export class GanttComponent implements OnInit, OnChanges {
     return (this.cellWidth * (myDateTo.diff(myDateFrom, 'minutes'))) / (this.hourScaleSelected * 60);
   }
 
-
   public minRangeSelectedChanged(value: Date): void {
     this.minRangeSelected = value;
     this.minRangeSelectedChange.emit(value);
@@ -233,7 +232,7 @@ export class GanttComponent implements OnInit, OnChanges {
     this.scrollPosition = value;
   }
 
-  public itemCollapsedEvtFired(value: boolean): void {
-    this.itemCollapsedEvt = value;
+  public itemDraggedOrCollapsedEvtFired(value: boolean): void {
+    this.itemDraggedOrCollapsedEvt = value;
   }
 }

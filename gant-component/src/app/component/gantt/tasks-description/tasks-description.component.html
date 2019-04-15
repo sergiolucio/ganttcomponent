@@ -14,7 +14,7 @@
   <div class="row header bg-light">
   </div>
 
-  <div cdkDropList (cdkDropListDropped)="drop($event)">
+  <div cdkDropList (cdkDropListDropped)="dropInside($event)" [cdkDropListData]="projects">
 
     <div class="scroll-viewport" #scrollViewPort>
 
@@ -101,112 +101,4 @@
   </div>
 
 </ng-template>
-
-
-<!-- ============================================================================================ -->
-
-<!--
-<div id="tasks-description" class="container-fluid">
-  <div class="row header">
-    <div class="task-name">
-      Nome
-    </div>
-    <div class="task-from-date">
-      <i class="fa fa-calendar" aria-hidden="true"></i> De
-    </div>
-    <div class="task-to-date">
-      <i class="fa fa-calendar" aria-hidden="true"></i> Até
-    </div>
-  </div>
-
-  <div class="row header bg-light">
-  </div>
-
-  <div cdkDropList (cdkDropListDropped)="drop($event)">
-    <div *ngFor="let project of projectsKeys" cdkDrag [cdkDragData]="project">
-
-      <ng-container *ngTemplateOutlet="templateProject; context: {project: project}"></ng-container>
-
-    </div>
-  </div>
-
-</div>
-
-
-&lt;!&ndash; templates de função recursiva para percorrer o objeto até ao fim (profundidade desconhecida) &ndash;&gt;
-
-<ng-template #templateProject let-project="project" let-mainProjectColor="mainProjectColor">
-
-  <div class="row body">
-    <div class="task-name"
-         *ngIf="project.projectChildren && project.projectChildren.length > 0 || project.tasks && project.tasks.length > 0"
-         [ngStyle]="{'border-left': mainProjectColor ? '3px solid ' + mainProjectColor : '3px solid ' + project.color, 'padding-left': project.genealogyDegree * 15 + 'px' }">
-
-      <i class="fa fa-chevron-up" aria-hidden="true"
-         (click)="toggleCollapseProject(project)" *ngIf="!project.collapsed"></i>
-      <i class="fa fa-chevron-down" aria-hidden="true"
-         (click)="toggleCollapseProject(project)" *ngIf="project.collapsed"></i> {{project.name}}
-
-    </div>
-
-    <div class="task-name"
-         *ngIf="!(project.projectChildren && project.projectChildren.length > 0 || project.tasks && project.tasks.length > 0)"
-         [ngStyle]="{'border-left': mainProjectColor ? '3px solid ' + mainProjectColor : '3px solid ' + project.color, 'padding-left': project.genealogyDegree * 15 + 'px' }">
-      <i class="fa fa-minus" aria-hidden="true"></i> {{project.name}}
-    </div>
-
-    <div class="task-from-date">
-      {{ project.date.from | date: 'd MMM yyyy - HH:mm' }}
-    </div>
-
-    <div class="task-to-date">
-      {{ project.date.to | date: 'd MMM yyyy - HH:mm' }}
-    </div>
-  </div>
-
-  <ng-template [ngIf]="project.tasks && project.tasks.length > 0 && !project.collapsed">
-
-    <div cdkDropList (cdkDropListDropped)="dropInside($event)" [cdkDropListData]="project.tasks">
-      <div *ngFor="let task of project.tasks; let i = index" cdkDrag [cdkDragData]="task">
-        <ng-container
-          *ngTemplateOutlet="templateTask; context: { task: task, mainProjectColor: mainProjectColor ? mainProjectColor : project.color}"></ng-container>
-      </div>
-    </div>
-
-  </ng-template>
-
-  <ng-template [ngIf]="project.projectChildren && project.projectChildren.length > 0 && !project.collapsed">
-
-    <div cdkDropList (cdkDropListDropped)="dropInside($event)" [cdkDropListData]="project.projectChildren">
-      <div *ngFor="let proj of project.projectChildren; let ind2 = index" cdkDrag [cdkDragData]="proj">
-        <ng-container
-          *ngTemplateOutlet="templateProject; context: { project: proj, mainProjectColor: mainProjectColor ? mainProjectColor : project.color }"></ng-container>
-      </div>
-    </div>
-  </ng-template>
-
-</ng-template>
-
-
-<ng-template #templateTask let-task="task" let-mainProjectColor="mainProjectColor" let-index="index">
-
-  <div class="row body">
-    <div class="task-name"
-         [ngStyle]="{'border-left': '3px solid ' + mainProjectColor, 'padding-left': task.genealogyDegree * 15 + 'px' }">
-      {{task.name}}
-    </div>
-    <div class="task-from-date">
-      {{task.date.from | date: 'd MMM yyyy - HH:mm' }}
-    </div>
-    <div class="task-to-date">
-      {{task.date.to | date: 'd MMM yyyy - HH:mm' }}
-    </div>
-  </div>
-
-</ng-template>
-
-
-&lt;!&ndash; ============================================================================================ &ndash;&gt;
-
--->
 

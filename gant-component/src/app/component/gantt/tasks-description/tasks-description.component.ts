@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import {IProject, IProjects} from '../gantt.component.interface';
 import {Observable, Subscription} from 'rxjs';
-import {CdkDragDrop, moveItemInArray} from '@angular/cdk/drag-drop';
+import {CdkDragDrop} from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-tasks-description',
@@ -28,8 +28,8 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
   public projects: IProjects;
   private _projectsKeys: Array<string>;
   public projectsKeysDatasource: Array<string>;
-  @Output() itemCollapsedEvt: EventEmitter<boolean>;
-  private _itemCollapsedEvtAux: boolean;
+  @Output() itemDraggedOrCollapsedEvt: EventEmitter<boolean>;
+  private _itemDraggedOrCollapsedEvt: boolean;
 
   @Input() scrollPosition: number;
   @Output() scrollPositionChange: EventEmitter<number>;
@@ -42,7 +42,7 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
 
   constructor() {
     this.scrollPositionChange = new EventEmitter<number>();
-    this.itemCollapsedEvt = new EventEmitter<boolean>();
+    this.itemDraggedOrCollapsedEvt = new EventEmitter<boolean>();
   }
 
   ngOnInit() {
@@ -51,13 +51,9 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
       this.projects = value;
     });
 
-    this._projectsKeys = [];
+    this._initProjectsKeys();
 
-    for (const projKey of Object.keys(this.projects)) {
-      this._projectsKeys.push(projKey);
-    }
-
-    this._itemCollapsedEvtAux = false;
+    this._itemDraggedOrCollapsedEvt = false;
 
     this._scrollHistory = 0;
     this._initVirtualScroll();
@@ -75,18 +71,23 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
     this._dettachScrollEvent();
   }
 
+  private _initProjectsKeys(): void {
+    this._projectsKeys = [];
+
+    for (const projKey of Object.keys(this.projects)) {
+      this._projectsKeys.push(projKey);
+    }
+  }
+
   public toggleCollapseProject(projectClicked: IProject): void {
     projectClicked.collapsed = !projectClicked.collapsed;
     this._refreshVirtualScroll();
-    this._itemCollapsedEvtAux = !this._itemCollapsedEvtAux;
-    this.itemCollapsedEvt.emit(this._itemCollapsedEvtAux);
-  }
-
-  public drop(event: CdkDragDrop<string[]>) {
-    moveItemInArray(this.projectsKeysDatasource, event.previousIndex, event.currentIndex);
+    this._itemDraggedOrCollapsedEvt = !this._itemDraggedOrCollapsedEvt;
+    this.itemDraggedOrCollapsedEvt.emit(this._itemDraggedOrCollapsedEvt);
   }
 
   public dropInside(event: CdkDragDrop<string[]>) {
+
     let arrayAux: Array<any>;
     arrayAux = [];
 
@@ -100,7 +101,16 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
     arrayAux.splice(event.previousIndex, 1);
     arrayAux.splice(event.currentIndex, 0, objAux);
 
-    Object.assign(event.container.data, arrayAux);
+    for (const item of arrayAux) {
+      event.container.data[item.name] = item;
+    }
+
+    this._initProjectsKeys();
+
+    this._itemDraggedOrCollapsedEvt = !this._itemDraggedOrCollapsedEvt;
+    this.itemDraggedOrCollapsedEvt.emit(this._itemDraggedOrCollapsedEvt);
+    
+    this._refreshVirtualScroll();
   }
 
   @ViewChild('scrollViewPort')

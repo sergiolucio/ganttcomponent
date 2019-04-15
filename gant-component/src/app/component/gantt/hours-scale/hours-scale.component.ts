@@ -30,7 +30,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
   public projects: IProjects;
   private _projectsKeys: Array<string>;
   public projectsKeysDatasource: Array<string>;
-  @Input() itemCollapsedEvt: boolean;
+  @Input() itemDraggedOrCollapsedEvt: boolean;
 
   @Input() minRangeSelected: Date;
   @Output() minRangeSelectedChange: EventEmitter<Date>;
@@ -49,7 +49,6 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
   @Input() horizontalScrollContainerWidth: number;
   private _horizontalScrollViewPort: HTMLElement;
   private _horizontalScrollHistory: number; // histórico do scroll para saber se está a aumentar ou diminuir;
-  private _excessWidth: number; // excesso em px do que sobre quando renderizamos os items visiveis
   public freeSpaceLeft: number; // espaço a ser gerado à esquerda do conteúdo vizivel em px;
 
   @Input() elmtCellWidth: number;
@@ -57,7 +56,6 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
   public backgroundLayerWidth: number;
 
   private _verticalScrollHistory: number;
-  private _excessHeight: number;
   private _indexMax: number;
   private _indexMin: number;
   private freeSpaceTop: number;
@@ -74,7 +72,9 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
       this.projects = value;
     });
 
-    this.itemCollapsedEvt = false;
+    console.log(this.projects);
+
+    this.itemDraggedOrCollapsedEvt = false;
 
     this._projectsKeys = [];
     for (const projKey of Object.keys(this.projects)) {
@@ -102,7 +102,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
       maxRangeSelected,
       verticalScrollPositionY,
       horizontalScrollContainerWidth,
-      itemCollapsedEvt
+      itemDraggedOrCollapsedEvt
     }: SimpleChanges
   ): void {
 
@@ -158,7 +158,12 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
       this._initHorizontalVirtualScroll();
     }
 
-    if (itemCollapsedEvt && !itemCollapsedEvt.isFirstChange()) {
+    if (itemDraggedOrCollapsedEvt && !itemDraggedOrCollapsedEvt.isFirstChange()) {
+      this._projectsKeys = [];
+      for (const projKey of Object.keys(this.projects)) {
+        this._projectsKeys.push(projKey);
+      }
+      console.log(this.projects);
       this._refreshVerticalVirtualScroll();
     }
   }

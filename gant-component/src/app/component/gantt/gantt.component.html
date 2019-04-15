@@ -13,7 +13,7 @@
 
         <div class="tasks-description-container h-100 px-0" [style.width.px]="tasksDescWidth">
          <app-tasks-description
-           (itemCollapsedEvt)="itemCollapsedEvtFired($event)"
+           (itemDraggedOrCollapsedEvt)="itemDraggedOrCollapsedEvtFired($event)"
            [scrollPosition]="scrollPosition"
            (scrollPositionChange)="scrollPositionChanged($event)"
            [projectsObservable]="getProjects()"></app-tasks-description>
@@ -36,7 +36,7 @@
             <div *ngSwitchCase="'hours'" class="h-100">
 
               <app-hours-scale
-                [itemCollapsedEvt]="itemCollapsedEvt"
+                [itemDraggedOrCollapsedEvt]="itemDraggedOrCollapsedEvt"
                 [verticalScrollPositionY]="scrollPosition"
                 (verticalScrollPositionChange)="scrollPositionChanged($event)"
                 [horizontalScrollContainerWidth]="tasksWidth"
