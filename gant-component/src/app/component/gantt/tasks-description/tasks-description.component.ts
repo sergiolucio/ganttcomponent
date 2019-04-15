@@ -240,6 +240,7 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
     this.projectsKeysDatasource = [];
     let myRenderedHeight = 0;
     const myScrollViewPortHeight: number = document.querySelector('.scroll-viewport').clientHeight;
+    const myScrollTop: number = document.querySelector('.scroll-viewport').scrollTop;
 
     let i: number;
     i = this._indexMin;
@@ -255,7 +256,7 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
       }
 
       i++;
-    } while (myRenderedHeight <= myScrollViewPortHeight);
+    } while (myRenderedHeight <= myScrollViewPortHeight + myScrollTop);
 
     this._indexMax = (this.projectsKeysDatasource.length - 1) + this._indexMin;
   }

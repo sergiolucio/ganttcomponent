@@ -1,19 +1,20 @@
 import {
   ChangeDetectionStrategy,
-  Component, ElementRef,
+  Component,
+  ElementRef,
   EventEmitter,
   Input,
   OnChanges,
   OnDestroy,
   OnInit,
   Output,
-  SimpleChanges, ViewChild,
+  SimpleChanges,
+  ViewChild,
   ViewEncapsulation
 } from '@angular/core';
 import * as moment from 'moment';
 import {IProjects} from '../gantt.component.interface';
 import {Observable, Subscription} from 'rxjs';
-import {Datasource, IDatasource} from 'ngx-ui-scroll';
 
 @Component({
   selector: 'app-hours-scale',
@@ -49,7 +50,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
   private _horizontalScrollViewPort: HTMLElement;
   private _horizontalScrollHistory: number; // histórico do scroll para saber se está a aumentar ou diminuir;
   private _excessWidth: number; // excesso em px do que sobre quando renderizamos os items visiveis
-  public scrollFreeSpaceLeft: number; // espaço a ser gerado à esquerda do conteúdo vizivel em px;
+  public freeSpaceLeft: number; // espaço a ser gerado à esquerda do conteúdo vizivel em px;
 
   @Input() elmtCellWidth: number;
   public dateCellWidth: number;
@@ -69,7 +70,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnInit() {
 
-    this._subscription = this.projectsObservable.subscribe( (value: IProjects) => {
+    this._subscription = this.projectsObservable.subscribe((value: IProjects) => {
       this.projects = value;
     });
 
@@ -88,7 +89,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
 
     this._setScaleRange();
 
-    this.scrollFreeSpaceLeft = 0;
+    this.freeSpaceLeft = 0;
     this._horizontalScrollHistory = 0;
 
     this._initVerticalVirtualScroll();
@@ -109,7 +110,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
       this._setScaleRange();
 
       this.dateCellWidth = (24 / this.hourScaleSelected) * this.elmtCellWidth;
-      this.scrollFreeSpaceLeft = 0;
+      this.freeSpaceLeft = 0;
 
       this._initHorizontalVirtualScroll();
 
@@ -127,7 +128,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
       } else {
 
         this.minRangeSelected = moment(minRangeSelected.currentValue).toDate();
-        this.scrollFreeSpaceLeft = 0;
+        this.freeSpaceLeft = 0;
         this._initHorizontalVirtualScroll();
       }
     }
@@ -143,7 +144,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
       } else {
 
         this.maxRangeSelected = moment(maxRangeSelected.currentValue).toDate();
-        this.scrollFreeSpaceLeft = 0;
+        this.freeSpaceLeft = 0;
         this._initHorizontalVirtualScroll();
       }
     }
@@ -153,15 +154,12 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     if (horizontalScrollContainerWidth && !horizontalScrollContainerWidth.isFirstChange()) {
-      this.scrollFreeSpaceLeft = 0;
+      this.freeSpaceLeft = 0;
       this._initHorizontalVirtualScroll();
     }
 
     if (itemCollapsedEvt && !itemCollapsedEvt.isFirstChange()) {
-      if (itemCollapsedEvt.currentValue === true) {
-        this._refreshVerticalVirtualScroll();
-      }
-      this.itemCollapsedEvt = false;
+      this._refreshVerticalVirtualScroll();
     }
   }
 
@@ -186,19 +184,11 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
 
     this.totalDateRange.push(date.toDate());
 
-    if (this.hourScaleSelected > 0.25) {
-      // código para acrescentar mais dois dias de buffer - buffer mínimo = 2
-      date.add(1, 'days');
-      this.totalDateRange.push(date.toDate());
-    }
-
-    this._excessWidth = myRenderedWidth - myScrollContainerWidth;
     document.querySelector('#tasks-content').scroll(0, 0);
   }
 
   private _initVerticalVirtualScroll() {
     const myScrollViewPortHeight: number = document.querySelector('.background-tasks-container').clientHeight;
-    // const myRowHeight: number = document.querySelector('.scroll-viewport .row').clientHeight;
 
     let myRenderedHeight = 0;
 
@@ -227,6 +217,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     this.projectsKeysDatasource = [];
     let myRenderedHeight = 0;
     const myScrollViewPortHeight: number = document.querySelector('.scroll-viewport').clientHeight;
+    const myScrollTop: number = document.querySelector('.scroll-viewport').scrollTop;
 
     let i: number;
     i = this._indexMin;
@@ -242,7 +233,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
       }
 
       i++;
-    } while (myRenderedHeight <= myScrollViewPortHeight);
+    } while (myRenderedHeight <= myScrollViewPortHeight + myScrollTop);
 
     this._indexMax = (this.projectsKeysDatasource.length - 1) + this._indexMin;
   }
@@ -268,36 +259,65 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private _horizontalScrollEventHandler(event: Event): void {
-    const myScrollLeft = (event.target as HTMLElement).scrollLeft;
-    const myScrollWidth = (event.target as HTMLElement).scrollWidth;
 
-    this.verticalScrollPositionX = myScrollLeft;
+    const myFnEventHandler = () => {
 
-    if (this._horizontalScrollHistory < myScrollLeft) { // condição que verifica que o scroll está a crescer -> direita
+      const myScrollLeft = (event.target as HTMLElement).scrollLeft;
+      const myScrollWidth = (event.target as HTMLElement).scrollWidth;
+      const myScrollViewPortWidth: number = this._horizontalScrollViewPort.clientWidth;
+      const myElmtWidth: number = this.dateCellWidth;
 
-      if (
-        myScrollLeft > (2 * this.horizontalScrollContainerWidth) / 3 &&
-        (myScrollWidth - myScrollLeft - this.horizontalScrollContainerWidth) < (2 * this.horizontalScrollContainerWidth) / 3 &&
-        this.totalDateRange[this.totalDateRange.length - 1] < this.maxRangeSelected
-      ) {
-        this.totalDateRange.push(moment(this.totalDateRange[this.totalDateRange.length - 1]).add(1, 'days').toDate());
-        this.totalDateRange.shift();
-        this.scrollFreeSpaceLeft += this.dateCellWidth;
+      if (this._horizontalScrollHistory < myScrollLeft) { // condição que verifica que o scroll está a crescer -> direita
+
+        this._horizontalScrollHistory = myScrollLeft;
+
+        // 1º preciso de saber se o elemento que vai desaparecer ainda se encontra visível
+        // (scrollLeft > que primeiro elemento + this.freeSpaceLeft)
+        // se já não se encontrar visível pode desaparecer
+
+        if (myElmtWidth + this.freeSpaceLeft < myScrollLeft) {
+          this.totalDateRange.shift();
+          this.freeSpaceLeft += myElmtWidth;
+        }
+
+        // 2º preciso de saber se ainda tenho elementos no fundo
+        // se já não tiver preciso de renderizar mais -> verificar se há mais a renderizar
+
+        if (
+          myScrollWidth - myScrollLeft - myScrollViewPortWidth <= 30 &&
+          this.totalDateRange[this.totalDateRange.length - 1] < this.maxRangeSelected
+        ) {
+          this.totalDateRange.push(moment(this.totalDateRange[this.totalDateRange.length - 1]).add(1, 'days').toDate());
+        }
+
+      } else { // scroll a diminuir -> esquerda
+
+        // 1º preciso de saber se o elemento que vai desaparecer ainda se encontra visível
+        // se já não se encontrar visível pode desaparecer
+
+        if (myScrollWidth - myScrollLeft - myScrollViewPortWidth > myElmtWidth) {
+          this.totalDateRange.pop();
+        }
+
+        // 2º preciso de saber se ainda tenho elementos no topo
+        // se já não tiver preciso de renderizar mais -> verificar se há mais a renderizar
+        // logo após renderizar o elemento preciso de retirar a altura correspondente ao mesmo ao freeSpaceTop
+
+        if (
+          myScrollLeft <= this.freeSpaceLeft + 30 &&
+          this.totalDateRange[0] > this.minRangeSelected
+        ) {
+          this.totalDateRange.unshift(moment(this.totalDateRange[0]).subtract(1, 'days').toDate());
+          this.freeSpaceLeft -= myElmtWidth;
+        }
       }
-    } else { // scroll a diminuir -> esquerda
 
-      if (
-        myScrollLeft > (2 * this.horizontalScrollContainerWidth) / 3 &&
-        (myScrollWidth - myScrollLeft - this.horizontalScrollContainerWidth) > (2 * this.horizontalScrollContainerWidth) / 3 &&
-        this.totalDateRange[0] > this.minRangeSelected
-      ) {
-        this.totalDateRange.unshift(moment(this.totalDateRange[0]).subtract(1, 'days').toDate());
-        this.totalDateRange.pop();
-        this.scrollFreeSpaceLeft -= this.dateCellWidth;
-      }
-    }
+      this._horizontalScrollHistory = myScrollLeft;
+    };
 
-    this._horizontalScrollHistory = myScrollLeft;
+    myFnEventHandler();
+
+    setTimeout(myFnEventHandler, 300);
   }
 
   @ViewChild('verticalScrollViewPort')

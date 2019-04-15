@@ -4,7 +4,7 @@
 
     <div id="background-layer" class="container-fluid px-0"
          [style.width.px]="dateCellWidth * totalDateRange.length"
-         [style.margin-left.px]="scrollFreeSpaceLeft">
+         [style.margin-left.px]="freeSpaceLeft">
 
       <ng-template ngFor let-date [ngForOf]="totalDateRange">
         <div class="date-container" [style.width.px]="dateCellWidth">
@@ -36,7 +36,7 @@
 <ng-template #projectTemplate let-item="item">
   <div class="project-cell"
        [ngStyle]="item._detailsStyle"
-       [style.left.px]="-scrollFreeSpaceLeft">{{item.name}}</div>
+       [style.left.px]="-freeSpaceLeft">{{item.name}}</div>
 
   <ng-template [ngIf]="item._hasTasks && !item.collapsed">
     <ng-container *ngTemplateOutlet="taskTemplate; context: {tasks: item.tasks}"></ng-container>
@@ -53,6 +53,6 @@
   <ng-template ngFor let-task [ngForOf]="tasks | keyvalue">
     <div class="project-cell"
          [ngStyle]="task.value._detailsStyle"
-         [style.left.px]="-scrollFreeSpaceLeft">{{task.value.name}}</div>
+         [style.left.px]="-freeSpaceLeft">{{task.value.name}}</div>
   </ng-template>
 </ng-template>
