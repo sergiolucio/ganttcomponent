@@ -41,6 +41,7 @@
                 (verticalScrollPositionChange)="scrollPositionChanged($event)"
                 [horizontalScrollContainerWidth]="tasksWidth"
                 [elmtCellWidth]="cellWidth"
+                (itemMovedEvt)="itemMovedEvt()"
                 [projectsObservable]="getProjects()"
                 [hourScaleSelected]="hourScaleSelected"
                 [minRangeSelected]="minRangeSelected"

@@ -13,8 +13,9 @@ import {
   ViewEncapsulation
 } from '@angular/core';
 import * as moment from 'moment';
-import {IProjects} from '../gantt.component.interface';
+import {IProject, IProjects, ITask} from '../gantt.component.interface';
 import {Observable, Subscription} from 'rxjs';
+import {CdkDragEnd, CdkDragMove, CdkDragStart} from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-hours-scale',
@@ -25,6 +26,7 @@ import {Observable, Subscription} from 'rxjs';
 })
 export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
 
+  // variáveis que armazenam e manipulam os items/projectos recebidos
   @Input() projectsObservable: Observable<IProjects>;
   private _subscription: Subscription;
   public projects: IProjects;
@@ -32,38 +34,48 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
   public projectsKeysDatasource: Array<string>;
   @Input() itemDraggedOrCollapsedEvt: boolean;
 
+  // variáveis que recebem as configurações escolhidas de date ranges e date scale
   @Input() minRangeSelected: Date;
   @Output() minRangeSelectedChange: EventEmitter<Date>;
   @Input() maxRangeSelected: Date;
   @Output() maxRangeSelectedChange: EventEmitter<Date>;
   public totalDateRange: Array<Date>;
-
   @Input() hourScaleSelected: number; // escala em horas
   public scaleRange: Array<Date>;
 
+  // variáveis de configuração de dimensões do layout
+  @Input() elmtCellWidth: number;
+  public dateCellWidth: number;
+  public backgroundLayerWidth: number;
+
+  // variáveis do virtual scroll
   @Input() verticalScrollPositionY: number;
   @Output() verticalScrollPositionChange: EventEmitter<number>;
-  public verticalScrollPositionX: number;
   private _verticalScrollViewPort: HTMLElement;
+  private _verticalScrollHistory: number;
+  private _indexMax: number;
+  private _indexMin: number;
+  public freeSpaceTop: number;
 
   @Input() horizontalScrollContainerWidth: number;
   private _horizontalScrollViewPort: HTMLElement;
   private _horizontalScrollHistory: number; // histórico do scroll para saber se está a aumentar ou diminuir;
   public freeSpaceLeft: number; // espaço a ser gerado à esquerda do conteúdo vizivel em px;
 
-  @Input() elmtCellWidth: number;
-  public dateCellWidth: number;
-  public backgroundLayerWidth: number;
+  // variáveis do drag and drop
+  private _dragInitPositionX: number;
+  public guideLineVisible: boolean;
+  public guideLinePositionLeft: number;
+  private _guideLineInitPosition: number;
+  @Output() itemMovedEvt: EventEmitter<boolean>;
+  private _isFirstInc: boolean;
 
-  private _verticalScrollHistory: number;
-  private _indexMax: number;
-  private _indexMin: number;
-  private freeSpaceTop: number;
 
   constructor() {
     this.minRangeSelectedChange = new EventEmitter<Date>();
     this.maxRangeSelectedChange = new EventEmitter<Date>();
     this.verticalScrollPositionChange = new EventEmitter<number>();
+    this.itemMovedEvt = new EventEmitter<boolean>();
   }
 
   ngOnInit() {
@@ -72,9 +84,8 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
       this.projects = value;
     });
 
-    console.log(this.projects);
-
     this.itemDraggedOrCollapsedEvt = false;
+    this.guideLineVisible = false;
 
     this._projectsKeys = [];
     for (const projKey of Object.keys(this.projects)) {
@@ -163,7 +174,6 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
       for (const projKey of Object.keys(this.projects)) {
         this._projectsKeys.push(projKey);
       }
-      console.log(this.projects);
       this._refreshVerticalVirtualScroll();
     }
   }
@@ -446,5 +456,72 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     for (const i = moment('00:00', 'HH:mm'); i < moment('24:00', 'HH:mm'); i.add(this.hourScaleSelected, 'hours')) {
       this.scaleRange.push(i.toDate());
     }
+  }
+
+  public startDrag(event: CdkDragStart): void {
+    const myDraggedElmt: HTMLElement = event.source.element.nativeElement;
+    this._dragInitPositionX = myDraggedElmt.getBoundingClientRect().left;
+
+    const myParentElmt: HTMLElement = myDraggedElmt.parentElement;
+    const myParentElmtPositionX = myParentElmt.getBoundingClientRect().left;
+
+    this.guideLineVisible = true;
+    this._guideLineInitPosition = this._dragInitPositionX - myParentElmtPositionX;
+    this.guideLinePositionLeft = this._guideLineInitPosition;
+    console.log(event);
+    this._isFirstInc = true;
+  }
+
+  public dragMoved(event: CdkDragMove): void {
+
+    const myDraggedElmt: HTMLElement = event.source.element.nativeElement;
+    const myElmtActualPosition: number = myDraggedElmt.getBoundingClientRect().left;
+    const myDeltaX: number = myElmtActualPosition - this._dragInitPositionX;
+
+    if (event.delta.x > 0) {
+      // o resto da divisão de um número por 1 dá a parte décimal
+      if ((myDeltaX / this.elmtCellWidth) % 1 >= 0.5 && this._isFirstInc) {
+        this.guideLinePositionLeft += this.elmtCellWidth;
+        this._isFirstInc = false;
+      } else if ((myDeltaX / this.elmtCellWidth) % 1 <= 0.49) {
+        this._isFirstInc = true;
+      }
+    } else {
+      // o resto da divisão de um número por 1 dá a parte décimal
+      if ((myDeltaX / this.elmtCellWidth) % 1 >= 0.5 && this._isFirstInc) {
+        this.guideLinePositionLeft -= this.elmtCellWidth;
+        this._isFirstInc = false;
+      } else if ((myDeltaX / this.elmtCellWidth) % 1 <= 0.49) {
+        this._isFirstInc = true;
+      }
+    }
+
+  }
+
+  public itemDragged(event: CdkDragEnd, item: IProject | ITask): void {
+    const myDraggedElmt: HTMLElement = event.source.element.nativeElement;
+
+    const myParentElmt: HTMLElement = myDraggedElmt.parentElement;
+    const myParentElmtPositionX = myParentElmt.getBoundingClientRect().left;
+
+    const myFinalPositionX: number = this.guideLinePositionLeft + myParentElmtPositionX;
+    const myDeltaX: number = myFinalPositionX - this._dragInitPositionX;
+
+
+    // calcular através dos px movidos a diferença em minutos da posição original
+    const myDateDiff = (myDeltaX) * (this.hourScaleSelected * 60) / this.elmtCellWidth;
+
+    item.date.from = moment(item.date.from).add(myDateDiff, 'minutes').toDate();
+    item.date.to = moment(item.date.to).add(myDateDiff, 'minutes').toDate();
+
+    this.guideLineVisible = false;
+
+    // código para fazer 'reset' ao drag... sem isto quando pegassemos duas vezes o mesmo elemento ele ia somar ao drag anterior!
+    myDraggedElmt.style.transform = 'none';
+    const source: any = event.source;
+    source._dragRef._passiveTransform = { x: 0, y: 0 };
+
+    this.itemMovedEvt.emit(true);
+    console.log(event);
   }
 }

@@ -39,6 +39,15 @@
         overflow-x: hidden;
         overflow-y: auto;
 
+        .guide-line {
+          width: 1px;
+          height: 100vh;
+          position: absolute;
+          background-color: #4bf7ff;
+          z-index: 10;
+          top: 0;
+        }
+
         .background-tasks-content {
 
           div.project-cell {
@@ -50,6 +59,10 @@
 
             &:first-of-type {
               margin-top: 0.5rem;
+            }
+
+            &:hover {
+              cursor: pointer;
             }
           }
         }

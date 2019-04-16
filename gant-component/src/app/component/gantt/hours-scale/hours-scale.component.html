@@ -16,6 +16,8 @@
 
       <div class="background-tasks-container" #verticalScrollViewPort>
 
+        <div class="guide-line" *ngIf="guideLineVisible" [style.left.px]="guideLinePositionLeft"></div>
+
         <div class="background-tasks-content" [style.margin-top.px]="freeSpaceTop">
           <ng-template ngFor let-projKey [ngForOf]="projectsKeysDatasource">
             <ng-container *ngTemplateOutlet="projectTemplate; context: {item: projects[projKey]}"></ng-container>
@@ -36,7 +38,12 @@
 <ng-template #projectTemplate let-item="item">
   <div class="project-cell"
        [ngStyle]="item._detailsStyle"
-       [style.left.px]="-freeSpaceLeft">{{item.name}}</div>
+       [style.left.px]="-freeSpaceLeft"
+       cdkDrag
+       (cdkDragStarted)="startDrag($event)"
+       (cdkDragMoved)="dragMoved($event)"
+       (cdkDragEnded)="itemDragged($event, item)"
+       cdkDragLockAxis="x">{{item.name}}</div>
 
   <ng-template [ngIf]="item._hasTasks && !item.collapsed">
     <ng-container *ngTemplateOutlet="taskTemplate; context: {tasks: item.tasks}"></ng-container>
@@ -53,6 +60,11 @@
   <ng-template ngFor let-task [ngForOf]="tasks | keyvalue">
     <div class="project-cell"
          [ngStyle]="task.value._detailsStyle"
-         [style.left.px]="-freeSpaceLeft">{{task.value.name}}</div>
+         [style.left.px]="-freeSpaceLeft"
+         cdkDrag
+         (cdkDragStarted)="startDrag($event)"
+         (cdkDragMoved)="dragMoved($event)"
+         (cdkDragEnded)="itemDragged($event, task.value)"
+         cdkDragLockAxis="x">{{task.value.name}}</div>
   </ng-template>
 </ng-template>

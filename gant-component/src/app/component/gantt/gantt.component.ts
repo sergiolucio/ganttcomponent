@@ -72,21 +72,11 @@ export class GanttComponent implements OnInit, OnChanges {
 
   ngOnChanges({minRangeSelected, hourScaleSelected}: SimpleChanges): void {
     if (minRangeSelected && !minRangeSelected.isFirstChange()) {
-      this.projectsCounter = 0;
-      for (const projKey of Object.keys(this._projects)) {
-        this._itemsByProject = 0;
-        this._inspectProjects(this._projects[projKey]);
-        this._projects[projKey]._projectItems = this._itemsByProject;
-      }
+      this._initInspectProjects();
     }
 
     if (hourScaleSelected && !hourScaleSelected.isFirstChange()) {
-      this.projectsCounter = 0;
-      for (const projKey of Object.keys(this._projects)) {
-        this._itemsByProject = 0;
-        this._inspectProjects(this._projects[projKey]);
-        this._projects[projKey]._projectItems = this._itemsByProject;
-      }
+      this._initInspectProjects();
     }
   }
 
@@ -140,6 +130,15 @@ export class GanttComponent implements OnInit, OnChanges {
     return new Observable<IProjects>(observer => {
       observer.next(this._projects);
     });
+  }
+
+  private _initInspectProjects(): void {
+    this.projectsCounter = 0;
+    for (const projKey of Object.keys(this._projects)) {
+      this._itemsByProject = 0;
+      this._inspectProjects(this._projects[projKey]);
+      this._projects[projKey]._projectItems = this._itemsByProject;
+    }
   }
 
   private _inspectProjects(project: IProject, mainProjectColor?: string): void {
@@ -234,5 +233,9 @@ export class GanttComponent implements OnInit, OnChanges {
 
   public itemDraggedOrCollapsedEvtFired(value: boolean): void {
     this.itemDraggedOrCollapsedEvt = value;
+  }
+
+  public itemMovedEvt(): void {
+    this._initInspectProjects();
   }
 }
