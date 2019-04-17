@@ -13,7 +13,7 @@ import {
   ViewEncapsulation
 } from '@angular/core';
 import * as moment from 'moment';
-import {IProject, IProjects, ITask} from '../gantt.component.interface';
+import {IInputOptions, IProject, IProjects, ITask} from '../gantt.component.interface';
 import {Observable, Subscription} from 'rxjs';
 import {CDK_DRAG_CONFIG, CdkDragEnd, CdkDragMove, CdkDragStart, DragRefConfig} from '@angular/cdk/drag-drop';
 
@@ -34,13 +34,17 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
   public projectsKeysDatasource: Array<string>;
   @Input() itemDraggedOrCollapsedEvt: boolean;
 
-  // variáveis que recebem as configurações escolhidas de date ranges e date scale
-  @Input() minRangeSelected: Date;
-  @Output() minRangeSelectedChange: EventEmitter<Date>;
-  @Input() maxRangeSelected: Date;
-  @Output() maxRangeSelectedChange: EventEmitter<Date>;
+  // inputs com opções
+  @Input() viewScale: number;
+  @Input() editScale: number;
+  @Input() fromRange: Date;
+  @Input() toRange: Date;
+  @Output() viewScaleChange: EventEmitter<number>;
+  @Output() editScaleChange: EventEmitter<number>;
+  @Output() fromRangeChange: EventEmitter<Date>;
+  @Output() toRangeChange: EventEmitter<Date>;
+
   public totalDateRange: Array<Date>;
-  @Input() hourScaleSelected: number; // escala em horas
   public scaleRange: Array<Date>;
 
   // variáveis de configuração de dimensões do layout
@@ -70,10 +74,12 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
   private _isFirstInc: boolean;
 
   constructor() {
-    this.minRangeSelectedChange = new EventEmitter<Date>();
-    this.maxRangeSelectedChange = new EventEmitter<Date>();
     this.verticalScrollPositionChange = new EventEmitter<number>();
     this.itemMovedEvt = new EventEmitter<boolean>();
+    this.viewScaleChange = new EventEmitter<number>();
+    this.editScaleChange = new EventEmitter<number>();
+    this.fromRangeChange = new EventEmitter<Date>();
+    this.toRangeChange = new EventEmitter<Date>();
   }
 
   ngOnInit() {
@@ -90,7 +96,11 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
       this._projectsKeys.push(projKey);
     }
 
-    this.dateCellWidth = (24 / this.hourScaleSelected) * this.elmtCellWidth;
+    // 1 dia = 24h = 1440 min
+    // 1 célula  <->  1 viewScale (ex. 60 min)
+    // x células <->  1 dia (1440 min)
+    // x = 1 dia / 1 viewScale -> depois é preciso convertir x em uma só célula -> x * this.elmtCellWidth
+    this.dateCellWidth = (1440 / this.viewScale) * this.elmtCellWidth;
 
     this._initHorizontalVirtualScroll();
 
@@ -106,19 +116,19 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnChanges(
     {
-      hourScaleSelected,
-      minRangeSelected,
-      maxRangeSelected,
+      viewScale,
+      fromRange,
+      toRange,
       verticalScrollPositionY,
       horizontalScrollContainerWidth,
       itemDraggedOrCollapsedEvt
     }: SimpleChanges
   ): void {
 
-    if (hourScaleSelected && !hourScaleSelected.isFirstChange()) {
-      this._setScaleRange();
+    if (viewScale && !viewScale.isFirstChange()) {
 
-      this.dateCellWidth = (24 / this.hourScaleSelected) * this.elmtCellWidth;
+      this._setScaleRange();
+      this.dateCellWidth = (1440 / this.viewScale) * this.elmtCellWidth;
       this.freeSpaceLeft = 0;
 
       this._initHorizontalVirtualScroll();
@@ -126,33 +136,29 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
       this.backgroundLayerWidth = this.dateCellWidth * this.totalDateRange.length;
     }
 
-    if (minRangeSelected && !minRangeSelected.isFirstChange()) {
+    if (fromRange && !fromRange.isFirstChange()) {
 
-      if (moment(minRangeSelected.currentValue).toDate() > this.maxRangeSelected) {
+      if (moment(fromRange.currentValue).toDate() > this.toRange) {
 
-        console.log('Erro - Input minRangeSelected - valor mínimo superior ao máximo no Range de amostragem.');
-        this.minRangeSelected = minRangeSelected.previousValue;
-        this.minRangeSelectedChange.emit(this.minRangeSelected);
+        console.log('Erro - Input range.to - valor mínimo superior ao máximo no Range de amostragem.');
+        this.fromRange = fromRange.previousValue;
 
       } else {
-
-        this.minRangeSelected = moment(minRangeSelected.currentValue).toDate();
+        this.fromRange = fromRange.currentValue;
         this.freeSpaceLeft = 0;
         this._initHorizontalVirtualScroll();
       }
     }
 
-    if (maxRangeSelected && !maxRangeSelected.isFirstChange()) {
+    if (toRange && !toRange.isFirstChange()) {
 
-      if (moment(maxRangeSelected.currentValue).toDate() < this.minRangeSelected) {
+      if (moment(toRange.currentValue).toDate() < this.fromRange) {
 
-        console.log('Erro - Input maxRangeSelected - valor máximo inferior ao mínimo no Range de amostragem.');
-        this.maxRangeSelected = maxRangeSelected.previousValue;
-        this.maxRangeSelectedChange.emit(this.maxRangeSelected);
+        console.log('Erro - Input range.from - valor máximo inferior ao mínimo no Range de amostragem.');
+        this.toRange = toRange.previousValue;
 
       } else {
-
-        this.maxRangeSelected = moment(maxRangeSelected.currentValue).toDate();
+        this.toRange = toRange.currentValue;
         this.freeSpaceLeft = 0;
         this._initHorizontalVirtualScroll();
       }
@@ -185,7 +191,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
   private _initHorizontalVirtualScroll(): void {
     const myScrollContainerWidth: number = this.horizontalScrollContainerWidth;
     let myRenderedWidth = 0;
-    const date = moment(this.minRangeSelected);
+    const date = moment(this.fromRange);
 
     this.totalDateRange = [];
 
@@ -298,7 +304,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
 
         if (
           myScrollWidth - myScrollLeft - myScrollViewPortWidth <= 30 &&
-          this.totalDateRange[this.totalDateRange.length - 1] < this.maxRangeSelected
+          this.totalDateRange[this.totalDateRange.length - 1] < this.toRange
         ) {
           this.totalDateRange.push(moment(this.totalDateRange[this.totalDateRange.length - 1]).add(1, 'days').toDate());
         }
@@ -318,7 +324,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
 
         if (
           myScrollLeft <= this.freeSpaceLeft + 30 &&
-          this.totalDateRange[0] > this.minRangeSelected
+          this.totalDateRange[0] > this.fromRange
         ) {
           this.totalDateRange.unshift(moment(this.totalDateRange[0]).subtract(1, 'days').toDate());
           this.freeSpaceLeft -= myElmtWidth;
@@ -378,7 +384,8 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
         }
 
         // 2º preciso de saber se ainda tenho elementos no fundo
-        // se já não tiver preciso de renderizar mais -> verificar se há mais a renderizar (this._indexMax < último elemento de this.projects)
+        // se já não tiver preciso de renderizar mais
+        // -> verificar se há mais a renderizar (this._indexMax < último elemento de this.projects)
         // scrollHeight - scrollTop - scrollViewPortHeight > 0 -> ou mais alguns pixeis de segurança
 
         if (myScrollHeight - myScrollTop - myScrollViewPortHeight <= 30 && this._indexMax < this._projectsKeys.length - 1) {
@@ -451,7 +458,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
   private _setScaleRange(): void {
     this.scaleRange = [];
 
-    for (const i = moment('00:00', 'HH:mm'); i < moment('24:00', 'HH:mm'); i.add(this.hourScaleSelected, 'hours')) {
+    for (const i = moment('00:00', 'HH:mm'); i < moment('24:00', 'HH:mm'); i.add(this.viewScale, 'minutes')) {
       this.scaleRange.push(i.toDate());
     }
   }
@@ -525,7 +532,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
 
 
     // calcular através dos px movidos a diferença em minutos da posição original
-    const myDateDiff = (myDeltaX) * (this.hourScaleSelected * 60) / this.elmtCellWidth;
+    const myDateDiff = (myDeltaX) * (this.viewScale) / this.elmtCellWidth;
 
     item.date.from = moment(item.date.from).add(myDateDiff, 'minutes').toDate();
     item.date.to = moment(item.date.to).add(myDateDiff, 'minutes').toDate();

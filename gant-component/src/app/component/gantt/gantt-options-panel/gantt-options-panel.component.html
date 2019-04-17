@@ -1,0 +1,55 @@
+<div class="card m-2" id="options-panel">
+
+  <div class="card-body">
+    <div class="form-row">
+
+      <h6 class="">
+        Scale:
+      </h6>
+
+      <div class="form-group col-auto">
+        <label for="viewScale">View Scale</label>
+        <select id="viewScale" class="form-control form-control-sm" [ngModel]="viewScale" (ngModelChange)="viewScaleSelectedChanged($event)">
+          <option [ngValue]="15">15 min</option>
+          <option [ngValue]="30">30 min</option>
+          <option [ngValue]="60">1 hora</option>
+          <option [ngValue]="180">3 horas</option>
+          <option [ngValue]="360">6 horas</option>
+          <option [ngValue]="1440">1 dia</option>
+        </select>
+      </div>
+
+      <div class="form-group col-auto">
+        <label for="editScale">Edit Scale</label>
+        <select id="editScale" class="form-control form-control-sm" [ngModel]="editScale" (ngModelChange)="editScaleSelectedChanged($event)">
+          <option *ngFor="let scale of editScaleOptions" [ngValue]="scale">
+            <ng-template [ngIf]="scale / 60 >= 1">{{scale/60}} hora(s)</ng-template>
+            <ng-template [ngIf]="scale / 60 < 1">{{scale}} minutos</ng-template>
+          </option>
+        </select>
+      </div>
+
+      <h6 class="pl-5">
+        Range:
+      </h6>
+
+      <div class="form-group col-auto">
+        <label for="inputMinRange">De</label>
+        <input type="date" id="inputMinRange" class="form-control form-control-sm"
+               [max]="toRange | date: 'yyyy-MM-dd'"
+               [ngModel]="fromRange | date: 'yyyy-MM-dd'"
+               (ngModelChange)="fromRangeSelectedChanged($event)" />
+      </div>
+
+      <div class="form-group col-auto">
+        <label for="inputMaxRange">Até</label>
+        <input type="date" id="inputMaxRange" class="form-control form-control-sm"
+               [min]="fromRange | date: 'yyyy-MM-dd'"
+               [ngModel]="toRange | date: 'yyyy-MM-dd'"
+               (ngModelChange)="toRangeSelectedChanged($event)" />
+      </div>
+
+    </div>
+  </div>
+</div>
+

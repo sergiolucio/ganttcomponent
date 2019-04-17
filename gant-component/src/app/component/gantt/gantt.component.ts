@@ -1,6 +1,6 @@
-import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
-import {EScaleStates, IProject, IProjects, ITask} from './gantt.component.interface';
-import {Observable} from 'rxjs';
+import {Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges} from '@angular/core';
+import {EScaleStates, IInputOptions, IProject, IProjects, ITask} from './gantt.component.interface';
+import {Observable, Subscription} from 'rxjs';
 import {GanttUtilsService} from '../../services/gantt.utils.service';
 import * as moment from 'moment';
 import {Moment} from 'moment';
@@ -10,19 +10,21 @@ import {Moment} from 'moment';
   templateUrl: './gantt.component.html',
   styleUrls: ['./gantt.component.scss']
 })
-export class GanttComponent implements OnInit, OnChanges {
-  @Input() scaleState: EScaleStates;
-  @Input() hourScaleSelected: number;
+export class GanttComponent implements OnInit {
+  // inputs recebidos do painel de opções
+  private _inputOptions: IInputOptions;
+  public viewScale: number;
+  public editScale: number;
+  public fromRange: Date;
+  public toRange: Date;
 
-  @Input() minRangeSelected: Date;
-  @Output() minRangeSelectedChange: EventEmitter<Date>;
-  @Input() maxRangeSelected: Date;
-  @Output() maxRangeSelectedChange: EventEmitter<Date>;
+  @Input() scaleState: EScaleStates;
 
   private _projects: IProjects;
   public projectsCounter: number;
   public itemDraggedOrCollapsedEvt: boolean;
 
+  // variáveis de configuração de dimensões do layout
   public tasksParentWidth: number;
   public tasksDescWidth: number;
   public tasksWidth: number;
@@ -36,10 +38,7 @@ export class GanttComponent implements OnInit, OnChanges {
 
   constructor(
     private _ganttUtilsService: GanttUtilsService
-  ) {
-    this.minRangeSelectedChange = new EventEmitter<Date>();
-    this.maxRangeSelectedChange = new EventEmitter<Date>();
-  }
+  ) {}
 
   ngOnInit() {
     const myTasksParent = document.querySelector('div.row.tables-container');
@@ -51,15 +50,16 @@ export class GanttComponent implements OnInit, OnChanges {
 
     this.cellWidth = 50;
 
-    this.projectsCounter = 0;
+    this._inputOptions = this._ganttUtilsService.generateInputOptions();
+    if (this._inputOptions) {
+      this._inspectInputOptions();
+    }
+
     this._projects = this._ganttUtilsService.generateProjects();
     if (this._projects) {
-      for (const projKey of Object.keys(this._projects)) {
-        this._itemsByProject = 0;
-        this._inspectProjects(this._projects[projKey]);
-        this._projects[projKey]._projectItems = this._itemsByProject;
-      }
+      this._initInspectProjects();
     }
+
 
     this.itemDraggedOrCollapsedEvt = false;
 
@@ -68,16 +68,6 @@ export class GanttComponent implements OnInit, OnChanges {
     }
 
     console.log(this.projectsCounter);
-  }
-
-  ngOnChanges({minRangeSelected, hourScaleSelected}: SimpleChanges): void {
-    if (minRangeSelected && !minRangeSelected.isFirstChange()) {
-      this._initInspectProjects();
-    }
-
-    if (hourScaleSelected && !hourScaleSelected.isFirstChange()) {
-      this._initInspectProjects();
-    }
   }
 
   // ======== código da barra separadora das tabelas - resizable
@@ -190,7 +180,7 @@ export class GanttComponent implements OnInit, OnChanges {
 
   private _findEventStart(event: IProject | ITask): number {
 
-    const initDate: Moment = moment(this.minRangeSelected);
+    const initDate: Moment = moment(this._inputOptions.range.from);
 
     const myDateFrom: Moment = moment(event.date.from);
 
@@ -198,7 +188,7 @@ export class GanttComponent implements OnInit, OnChanges {
       return 0;
     }
 
-    return (this.cellWidth * myDateFrom.diff(initDate, 'minutes')) / (this.hourScaleSelected * 60);
+    return (this.cellWidth * myDateFrom.diff(initDate, 'minutes')) / (this._inputOptions.viewScale);
   }
 
   private _findEventDuration(event: IProject | ITask): number {
@@ -206,25 +196,42 @@ export class GanttComponent implements OnInit, OnChanges {
     let myDateFrom: Moment = moment(event.date.from);
     const myDateTo: Moment = moment(event.date.to);
 
-    if (moment(this.minRangeSelected) > myDateFrom) {
-      myDateFrom = moment(this.minRangeSelected);
+    if (moment(this._inputOptions.range.from) > myDateFrom) {
+      myDateFrom = moment(this._inputOptions.range.from);
     }
 
     if (myDateTo.diff(myDateFrom, 'minutes') <= 0) {
       return 0;
     }
 
-    return (this.cellWidth * (myDateTo.diff(myDateFrom, 'minutes'))) / (this.hourScaleSelected * 60);
+    return (this.cellWidth * (myDateTo.diff(myDateFrom, 'minutes'))) / (this._inputOptions.viewScale);
   }
 
-  public minRangeSelectedChanged(value: Date): void {
-    this.minRangeSelected = value;
-    this.minRangeSelectedChange.emit(value);
+  private _inspectInputOptions(): void {
+    this.editScale = this._inputOptions.editScale;
+    this.viewScale = this._inputOptions.viewScale;
+    this.fromRange = this._inputOptions.range.from;
+    this.toRange = this._inputOptions.range.to;
   }
 
-  public maxRangeSelectedChanged(value: Date): void {
-    this.maxRangeSelected = value;
-    this.maxRangeSelectedChange.emit(value);
+  public viewScaleChanged(value: number): void {
+    this._inputOptions.viewScale = value;
+    this._inspectInputOptions();
+  }
+
+  public editScaleChanged(value: number): void {
+    this._inputOptions.editScale = value;
+    this._inspectInputOptions();
+  }
+
+  public fromRangeChanged(value: Date): void {
+    this._inputOptions.range.from = value;
+    this._inspectInputOptions();
+  }
+
+  public toRangeChanged(value: Date): void {
+    this._inputOptions.range.to = value;
+    this._inspectInputOptions();
   }
 
   public scrollPositionChanged(value: number): void {

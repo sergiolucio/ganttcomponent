@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {IProject, IProjects, ITask} from '../component/gantt/gantt.component.interface';
+import {IInputOptions, IProject, IProjects, ITask} from '../component/gantt/gantt.component.interface';
 import * as moment from 'moment';
 
 @Injectable({
@@ -94,5 +94,16 @@ export class GanttUtilsService {
     }
 
     return projectData;
+  }
+
+  public generateInputOptions(): IInputOptions {
+    return {
+      viewScale: 60,
+      editScale: 60,
+      range: {
+        from: moment('04-04-2019 00:00', 'DD-MM-YYYY HH:mm').toDate(), // moment('00:00', 'HH:mm').subtract(5, 'days').toDate();
+        to: moment('08-04-2019 00:00', 'DD-MM-YYYY HH:mm').toDate() // moment('00:00', 'HH:mm').add(5, 'days').toDate();
+      }
+    };
   }
 }

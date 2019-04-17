@@ -2,6 +2,11 @@ export enum EScaleStates {
   hours
 }
 
+export interface IInputOptions {
+  range: IDate;
+  viewScale: number;
+  editScale: number;
+}
 
 export interface IProjects {
   [id: string]: IProject;
@@ -47,7 +52,6 @@ export interface IDependencies {
   from?: ITasks;
   to?: ITasks;
 }
-
 
 interface IStyle {
   [property: string]: string;

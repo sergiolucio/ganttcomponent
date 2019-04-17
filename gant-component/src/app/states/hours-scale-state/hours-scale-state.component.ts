@@ -1,5 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import * as moment from 'moment';
+import {IInputOptions} from '../../component/gantt/gantt.component.interface';
+import {Observable} from 'rxjs';
 
 @Component({
   selector: 'app-hours-scale-state',
@@ -8,19 +10,7 @@ import * as moment from 'moment';
 })
 export class HoursScaleStateComponent implements OnInit {
 
-  public hourScaleSelected: number;
-  public minRangeSelected: Date;
-  public maxRangeSelected: Date;
+  constructor() {}
 
-  constructor(
-  ) { }
-
-  ngOnInit() {
-    this.hourScaleSelected = 3;
-    this.minRangeSelected = moment('04-04-2019 00:00', 'DD-MM-YYYY HH:mm').toDate();
-    this.maxRangeSelected = moment('08-04-2019 00:00', 'DD-MM-YYYY HH:mm').toDate();
-    // this.minRangeSelected = moment('00:00', 'HH:mm').subtract(5, 'days').toDate();
-    // this.maxRangeSelected = moment('00:00', 'HH:mm').add(5, 'days').toDate();
-  }
-
+  ngOnInit() {}
 }

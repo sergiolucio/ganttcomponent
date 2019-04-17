@@ -1,3 +1,12 @@
+<app-gantt-options-panel
+  [viewScale]="viewScale"
+  (viewScaleChange)="viewScaleChanged($event)"
+  [editScale]="editScale"
+  (editScaleChange)="editScaleChanged($event)"
+  [fromRange]="fromRange"
+  (fromRangeChange)="fromRangeChanged($event)"
+  [toRange]="toRange"
+  (toRangeChange)="toRangeChanged($event)"></app-gantt-options-panel>
 
 <div class="card m-2" id="gantt-panel">
 
@@ -43,11 +52,14 @@
                 [elmtCellWidth]="cellWidth"
                 (itemMovedEvt)="itemMovedEvt()"
                 [projectsObservable]="getProjects()"
-                [hourScaleSelected]="hourScaleSelected"
-                [minRangeSelected]="minRangeSelected"
-                (minRangeSelectedChange)="minRangeSelectedChanged($event)"
-                [maxRangeSelected]="maxRangeSelected"
-                (maxRangeSelectedChange)="maxRangeSelectedChanged($event)"></app-hours-scale>
+                [viewScale]="viewScale"
+                (viewScaleChange)="viewScaleChanged($event)"
+                [editScale]="editScale"
+                (editScaleChange)="editScaleChanged($event)"
+                [fromRange]="fromRange"
+                (fromRangeChange)="fromRangeChanged($event)"
+                [toRange]="toRange"
+                (toRangeChange)="toRangeChanged($event)"></app-hours-scale>
 
             </div>
 
@@ -62,3 +74,4 @@
   </div>
 
 </div>
+
