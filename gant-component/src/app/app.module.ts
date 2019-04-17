@@ -2,7 +2,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { DragDropModule } from '@angular/cdk/drag-drop';
+import {CDK_DRAG_CONFIG, DragDropModule} from '@angular/cdk/drag-drop';
 import { UiScrollModule } from 'ngx-ui-scroll';
 
 import { AppComponent } from './app.component';
@@ -35,7 +35,15 @@ const appRoutes = [
     DragDropModule,
     UiScrollModule
   ],
-  providers: [],
+  providers: [
+    {
+      provide: CDK_DRAG_CONFIG,
+      useValue: {
+        dragStartThreshold: 1,
+        pointerDirectionChangeThreshold: 1
+      }
+    }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

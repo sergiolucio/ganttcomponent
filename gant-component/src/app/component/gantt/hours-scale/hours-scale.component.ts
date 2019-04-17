@@ -2,7 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  EventEmitter,
+  EventEmitter, InjectionToken,
   Input,
   OnChanges,
   OnDestroy,
@@ -15,7 +15,7 @@ import {
 import * as moment from 'moment';
 import {IProject, IProjects, ITask} from '../gantt.component.interface';
 import {Observable, Subscription} from 'rxjs';
-import {CdkDragEnd, CdkDragMove, CdkDragStart} from '@angular/cdk/drag-drop';
+import {CDK_DRAG_CONFIG, CdkDragEnd, CdkDragMove, CdkDragStart, DragRefConfig} from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-hours-scale',
@@ -56,7 +56,6 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
   private _indexMax: number;
   private _indexMin: number;
   public freeSpaceTop: number;
-
   @Input() horizontalScrollContainerWidth: number;
   private _horizontalScrollViewPort: HTMLElement;
   private _horizontalScrollHistory: number; // histórico do scroll para saber se está a aumentar ou diminuir;
@@ -69,7 +68,6 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
   private _guideLineInitPosition: number;
   @Output() itemMovedEvt: EventEmitter<boolean>;
   private _isFirstInc: boolean;
-
 
   constructor() {
     this.minRangeSelectedChange = new EventEmitter<Date>();
@@ -468,7 +466,6 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     this.guideLineVisible = true;
     this._guideLineInitPosition = this._dragInitPositionX - myParentElmtPositionX;
     this.guideLinePositionLeft = this._guideLineInitPosition;
-    console.log(event);
     this._isFirstInc = true;
   }
 
@@ -477,25 +474,44 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     const myDraggedElmt: HTMLElement = event.source.element.nativeElement;
     const myElmtActualPosition: number = myDraggedElmt.getBoundingClientRect().left;
     const myDeltaX: number = myElmtActualPosition - this._dragInitPositionX;
+    const myDecimalPart = (myDeltaX / this.elmtCellWidth) % 1; // o resto da divisão de um número por 1 dá a parte décimal
 
     if (event.delta.x > 0) {
-      // o resto da divisão de um número por 1 dá a parte décimal
-      if ((myDeltaX / this.elmtCellWidth) % 1 >= 0.5 && this._isFirstInc) {
-        this.guideLinePositionLeft += this.elmtCellWidth;
-        this._isFirstInc = false;
-      } else if ((myDeltaX / this.elmtCellWidth) % 1 <= 0.49) {
-        this._isFirstInc = true;
+
+      if (myDecimalPart >= 0) {
+        if ( myDecimalPart >= 0.5 && this._isFirstInc ) {
+          this.guideLinePositionLeft += this.elmtCellWidth;
+          this._isFirstInc = false;
+        } else if ( myDecimalPart <= 0.49 ) {
+          this._isFirstInc = true;
+        }
+      } else {
+        if (myDecimalPart >= -0.49 && this._isFirstInc) {
+          this.guideLinePositionLeft += this.elmtCellWidth;
+          this._isFirstInc = false;
+        } else if (myDecimalPart <= -0.5) {
+          this._isFirstInc = true;
+        }
       }
-    } else {
-      // o resto da divisão de um número por 1 dá a parte décimal
-      if ((myDeltaX / this.elmtCellWidth) % 1 >= 0.5 && this._isFirstInc) {
-        this.guideLinePositionLeft -= this.elmtCellWidth;
-        this._isFirstInc = false;
-      } else if ((myDeltaX / this.elmtCellWidth) % 1 <= 0.49) {
-        this._isFirstInc = true;
+    } else if (event.delta.x < 0) {
+      if (myDecimalPart >= 0) {
+        if (myDecimalPart <= 0.49 && this._isFirstInc) {
+          this.guideLinePositionLeft -= this.elmtCellWidth;
+          this._isFirstInc = false;
+        } else if (myDecimalPart >= 0.5) {
+          this._isFirstInc = true;
+        }
+      } else {
+        if (myDecimalPart <= -0.5 && this._isFirstInc) {
+          this.guideLinePositionLeft -= this.elmtCellWidth;
+          this._isFirstInc = false;
+        } else if (myDecimalPart >= -0.49) {
+          this._isFirstInc = true;
+        }
       }
     }
 
+    console.log(myDecimalPart + ' <-> ' + event.delta.x);
   }
 
   public itemDragged(event: CdkDragEnd, item: IProject | ITask): void {
