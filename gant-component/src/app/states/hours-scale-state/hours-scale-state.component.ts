@@ -2,6 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import * as moment from 'moment';
 import {IInputOptions} from '../../component/gantt/gantt.component.interface';
 import {Observable} from 'rxjs';
+import {GanttUtilsService} from '../../services/gantt.utils.service';
 
 @Component({
   selector: 'app-hours-scale-state',
@@ -10,7 +11,13 @@ import {Observable} from 'rxjs';
 })
 export class HoursScaleStateComponent implements OnInit {
 
-  constructor() {}
+  public inputOptions: IInputOptions;
 
-  ngOnInit() {}
+  constructor(
+    private _ganttUtilsService: GanttUtilsService
+  ) {}
+
+  ngOnInit() {
+    this.inputOptions = this._ganttUtilsService.generateInputOptions();
+  }
 }

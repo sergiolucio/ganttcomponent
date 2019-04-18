@@ -1,6 +1,7 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {IInputOptions} from '../gantt.component.interface';
 import {Observable, Subscription} from 'rxjs';
+import * as moment from 'moment';
 
 @Component({
   selector: 'app-gantt-options-panel',
@@ -45,13 +46,13 @@ export class GanttOptionsPanelComponent implements OnInit {
   }
 
   public fromRangeSelectedChanged(date: Date): void {
-    this.fromRange = date;
-    this.fromRangeChange.emit(date);
+    this.fromRange = moment(date).toDate();
+    this.fromRangeChange.emit(this.fromRange);
   }
 
   public toRangeSelectedChanged(date: Date): void {
-    this.toRange = date;
-    this.toRangeChange.emit(date);
+    this.toRange = moment(date).toDate();
+    this.toRangeChange.emit(this.toRange);
   }
 
   private _initEditScaleOptions(): void {

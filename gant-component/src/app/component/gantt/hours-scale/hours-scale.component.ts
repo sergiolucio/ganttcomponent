@@ -2,7 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  EventEmitter, InjectionToken,
+  EventEmitter,
   Input,
   OnChanges,
   OnDestroy,
@@ -13,9 +13,10 @@ import {
   ViewEncapsulation
 } from '@angular/core';
 import * as moment from 'moment';
-import {IInputOptions, IProject, IProjects, ITask} from '../gantt.component.interface';
+import {IProject, IProjects, ITask} from '../gantt.component.interface';
 import {Observable, Subscription} from 'rxjs';
-import {CDK_DRAG_CONFIG, CdkDragEnd, CdkDragMove, CdkDragStart, DragRefConfig} from '@angular/cdk/drag-drop';
+import {CdkDragEnd, CdkDragMove, CdkDragStart} from '@angular/cdk/drag-drop';
+import {debug} from 'util';
 
 @Component({
   selector: 'app-hours-scale',
@@ -195,15 +196,15 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
 
     this.totalDateRange = [];
 
-    while (myRenderedWidth < myScrollContainerWidth) {
+    while (myRenderedWidth <= myScrollContainerWidth) {
       this.totalDateRange.push(date.toDate());
       date.add(1, 'days');
       myRenderedWidth += this.dateCellWidth;
     }
 
-    this.totalDateRange.push(date.toDate());
+    // this.totalDateRange.push(date.toDate());
 
-    document.querySelector('#tasks-content').scroll(0, 0);
+    document.querySelector('#background-content').scrollLeft = 0;
   }
 
   private _initVerticalVirtualScroll() {
