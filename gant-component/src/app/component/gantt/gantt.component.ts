@@ -1,7 +1,6 @@
-import {Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges} from '@angular/core';
+import {Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import {EScaleStates, IInputOptions, IProject, IProjects, ITask} from './gantt.component.interface';
-import {Observable, Subscription} from 'rxjs';
-import {GanttUtilsService} from '../../services/gantt.utils.service';
+import {Observable} from 'rxjs';
 import * as moment from 'moment';
 import {Moment} from 'moment';
 
@@ -11,7 +10,8 @@ import {Moment} from 'moment';
   styleUrls: ['./gantt.component.scss']
 })
 export class GanttComponent implements OnInit, OnChanges {
-  // inputs recebidos do painel de opções
+  // inputs recebidos  de opções
+  @Input() inputOptionsPanelActive: boolean;
   @Input() inputOptions: IInputOptions;
   public viewScale: number;
   public editScale: number;
@@ -20,7 +20,7 @@ export class GanttComponent implements OnInit, OnChanges {
 
   @Input() scaleState: EScaleStates;
 
-  private _projects: IProjects;
+  @Input() projects: IProjects;
   public projectsCounter: number;
   public itemDraggedOrCollapsedEvt: boolean;
 
@@ -36,9 +36,8 @@ export class GanttComponent implements OnInit, OnChanges {
   public scrollPosition: number;
   private _itemsByProject: number;
 
-  constructor(
-    private _ganttUtilsService: GanttUtilsService
-  ) {}
+  constructor() {
+  }
 
   ngOnInit() {
     const myTasksParent = document.querySelector('div.row.tables-container');
@@ -47,18 +46,15 @@ export class GanttComponent implements OnInit, OnChanges {
     this.tasksWidth = this.tasksParentWidth * 0.7;
     this.tasksDivisionWidth = this.tasksParentWidth * 0.005;
     this.grabber = false;
-
     this.cellWidth = 50;
 
     if (this.inputOptions) {
       this._inspectInputOptions();
     }
 
-    this._projects = this._ganttUtilsService.generateProjects();
-    if (this._projects) {
-      this._initInspectProjects();
+    if (this.projects) {
+      this.initInspectProjects();
     }
-
 
     this.itemDraggedOrCollapsedEvt = false;
 
@@ -69,10 +65,14 @@ export class GanttComponent implements OnInit, OnChanges {
     console.log(this.projectsCounter);
   }
 
-  ngOnChanges({ inputOptions }: SimpleChanges): void {
+  ngOnChanges({inputOptions, projects}: SimpleChanges): void {
     if (inputOptions && !inputOptions.isFirstChange()) {
       this._inspectInputOptions();
-      this._initInspectProjects();
+      this.initInspectProjects();
+    }
+
+    if (projects && !projects.isFirstChange()) {
+      this.initInspectProjects();
     }
   }
 
@@ -124,16 +124,16 @@ export class GanttComponent implements OnInit, OnChanges {
 
   public getProjects(): Observable<IProjects> {
     return new Observable<IProjects>(observer => {
-      observer.next(this._projects);
+      observer.next(this.projects);
     });
   }
 
-  private _initInspectProjects(): void {
+  public initInspectProjects(): void {
     this.projectsCounter = 0;
-    for (const projKey of Object.keys(this._projects)) {
+    for (const projKey of Object.keys(this.projects)) {
       this._itemsByProject = 0;
-      this._inspectProjects(this._projects[projKey]);
-      this._projects[projKey]._projectItems = this._itemsByProject;
+      this._inspectProjects(this.projects[projKey]);
+      this.projects[projKey]._projectItems = this._itemsByProject;
     }
   }
 
@@ -223,25 +223,25 @@ export class GanttComponent implements OnInit, OnChanges {
   public viewScaleChanged(value: number): void {
     this.inputOptions.viewScale = value;
     this.viewScale = this.inputOptions.viewScale;
-    this._initInspectProjects();
+    this.initInspectProjects();
   }
 
   public editScaleChanged(value: number): void {
     this.inputOptions.editScale = value;
     this.editScale = this.inputOptions.editScale;
-    this._initInspectProjects();
+    this.initInspectProjects();
   }
 
   public fromRangeChanged(value: Date): void {
     this.inputOptions.range.from = value;
     this.fromRange = this.inputOptions.range.from;
-    this._initInspectProjects();
+    this.initInspectProjects();
   }
 
   public toRangeChanged(value: Date): void {
     this.inputOptions.range.to = value;
     this.toRange = this.inputOptions.range.to;
-    this._initInspectProjects();
+    this.initInspectProjects();
   }
 
   public scrollPositionChanged(value: number): void {
@@ -253,6 +253,6 @@ export class GanttComponent implements OnInit, OnChanges {
   }
 
   public itemMovedEvt(): void {
-    this._initInspectProjects();
+    this.initInspectProjects();
   }
 }

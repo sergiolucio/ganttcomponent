@@ -1,4 +1,6 @@
-
+*:focus {
+  outline: 0;
+}
 #tasks-description {
 
   width: 100%;
@@ -40,6 +42,12 @@
     overflow-anchor: none;
   }
 
+  input[type=number] {
+    background-color: transparent;
+    border: none;
+    width: 1.15rem;
+    text-align: center;
+  }
 }
 
 
@@ -55,3 +63,8 @@
   opacity: 0;
 }
 
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

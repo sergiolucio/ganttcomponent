@@ -11,9 +11,10 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import {IProject, IProjects} from '../gantt.component.interface';
+import {IProject, IProjects, ITask} from '../gantt.component.interface';
 import {Observable, Subscription} from 'rxjs';
 import {CdkDragDrop} from '@angular/cdk/drag-drop';
+import * as moment from 'moment';
 
 @Component({
   selector: 'app-tasks-description',
@@ -40,9 +41,12 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
   private _indexMax: number; // histórico do index dos items adicionados quando o scroll aumenta
   private _indexMin: number; // histórico do index dos items adicionados quando o scroll diminui
 
+  @Output() updateProjects: EventEmitter<boolean>;
+
   constructor() {
     this.scrollPositionChange = new EventEmitter<number>();
     this.itemDraggedOrCollapsedEvt = new EventEmitter<boolean>();
+    this.updateProjects = new EventEmitter<boolean>();
   }
 
   ngOnInit() {
@@ -109,7 +113,7 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
 
     this._itemDraggedOrCollapsedEvt = !this._itemDraggedOrCollapsedEvt;
     this.itemDraggedOrCollapsedEvt.emit(this._itemDraggedOrCollapsedEvt);
-    
+
     this._refreshVirtualScroll();
   }
 
@@ -165,7 +169,8 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
         }
 
         // 2º preciso de saber se ainda tenho elementos no fundo
-        // se já não tiver preciso de renderizar mais -> verificar se há mais a renderizar (this._indexMax < último elemento de this.projects)
+        // se já não tiver preciso de renderizar mais
+        // -> verificar se há mais a renderizar (this._indexMax < último elemento de this.projects)
         // scrollHeight - scrollTop - scrollViewPortHeight > 0 -> ou mais alguns pixeis de segurança
 
         if (myScrollHeight - myScrollTop - myScrollViewPortHeight <= 30 && this._indexMax < this._projectsKeys.length - 1) {
@@ -269,5 +274,33 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
     } while (myRenderedHeight <= myScrollViewPortHeight + myScrollTop);
 
     this._indexMax = (this.projectsKeysDatasource.length - 1) + this._indexMin;
+  }
+
+  public fromHourChanged(value: number, item: IProject | ITask): void {
+    if (value && value < 24 && value >= 0) {
+      item.date.from = moment(item.date.from).hours(value).toDate();
+    }
+    this.updateProjects.emit();
+  }
+
+  public fromMinutesChanged(value: number, item: IProject | ITask): void {
+    if (value && value < 60 && value >= 0) {
+      item.date.from = moment(item.date.from).minutes(value).toDate();
+    }
+    this.updateProjects.emit();
+  }
+
+  public toHourChanged(value: number, item: IProject | ITask): void {
+    if (value && value < 24 && value >= 0) {
+      item.date.from = moment(item.date.from).hours(value).toDate();
+    }
+    this.updateProjects.emit();
+  }
+
+  public toMinutesChanged(value: number, item: IProject | ITask): void {
+    if (value && value < 60 && value >= 0) {
+      item.date.from = moment(item.date.from).minutes(value).toDate();
+    }
+    this.updateProjects.emit();
   }
 }

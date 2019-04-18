@@ -17,7 +17,11 @@
 
       <div class="background-tasks-container" #verticalScrollViewPort>
 
-        <div class="guide-line" *ngIf="guideLineVisible" [style.left.px]="guideLinePositionLeft"></div>
+        <div class="guide-line" *ngIf="guideLineVisible" [style.left.px]="guideLinePositionLeft">
+          <div class="guide-line-time-info">
+            {{guideLineTimeInfo | date: 'HH:mm'}}
+          </div>
+        </div>
 
         <div class="background-tasks-content" [style.margin-top.px]="freeSpaceTop">
           <ng-template ngFor let-projKey [ngForOf]="projectsKeysDatasource">
@@ -42,7 +46,7 @@
        [style.left.px]="-freeSpaceLeft"
        cdkDrag
        (cdkDragStarted)="startDrag($event)"
-       (cdkDragMoved)="dragMoved($event)"
+       (cdkDragMoved)="dragMoved($event, item)"
        (cdkDragEnded)="itemDragged($event, item)"
        cdkDragLockAxis="x">{{item.name}}</div>
 
@@ -64,7 +68,7 @@
          [style.left.px]="-freeSpaceLeft"
          cdkDrag
          (cdkDragStarted)="startDrag($event)"
-         (cdkDragMoved)="dragMoved($event)"
+         (cdkDragMoved)="dragMoved($event, task.value)"
          (cdkDragEnded)="itemDragged($event, task.value)"
          cdkDragLockAxis="x">{{task.value.name}}</div>
   </ng-template>

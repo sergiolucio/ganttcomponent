@@ -46,6 +46,15 @@
           background-color: #4bf7ff;
           z-index: 10;
           top: 0;
+
+          .guide-line-time-info {
+            position: absolute;
+            left: 5px;
+            border: 1px solid gray;
+            background-color: lightgray;
+            border-radius: 5px;
+            padding: 10px;
+          }
         }
 
         .background-tasks-content {

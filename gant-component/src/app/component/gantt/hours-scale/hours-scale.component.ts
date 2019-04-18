@@ -16,7 +16,6 @@ import * as moment from 'moment';
 import {IProject, IProjects, ITask} from '../gantt.component.interface';
 import {Observable, Subscription} from 'rxjs';
 import {CdkDragEnd, CdkDragMove, CdkDragStart} from '@angular/cdk/drag-drop';
-import {debug} from 'util';
 
 @Component({
   selector: 'app-hours-scale',
@@ -29,7 +28,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
 
   // variáveis que armazenam e manipulam os items/projectos recebidos
   @Input() projectsObservable: Observable<IProjects>;
-  private _subscription: Subscription;
+  private _projectsSubscription: Subscription;
   public projects: IProjects;
   private _projectsKeys: Array<string>;
   public projectsKeysDatasource: Array<string>;
@@ -73,6 +72,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
   private _guideLineInitPosition: number;
   @Output() itemMovedEvt: EventEmitter<boolean>;
   private _isFirstInc: boolean;
+  public guideLineTimeInfo: Date;
 
   constructor() {
     this.verticalScrollPositionChange = new EventEmitter<number>();
@@ -85,12 +85,12 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnInit() {
 
-    this._subscription = this.projectsObservable.subscribe((value: IProjects) => {
-      this.projects = value;
-    });
-
     this.itemDraggedOrCollapsedEvt = false;
     this.guideLineVisible = false;
+
+    this._projectsSubscription = this.projectsObservable.subscribe((value: IProjects) => {
+      this.projects = value;
+    });
 
     this._projectsKeys = [];
     for (const projKey of Object.keys(this.projects)) {
@@ -184,7 +184,6 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this._subscription.unsubscribe();
     this._dettachHorizontalScrollEvent();
     this._dettachVerticalScrollEvent();
   }
@@ -230,7 +229,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     this._indexMax = this.projectsKeysDatasource.length - 1;
     this.freeSpaceTop = 0;
 
-    document.querySelector('.scroll-viewport').scroll(0, 0);
+    document.querySelector('.background-tasks-container').scroll(0, 0);
   }
 
   private _refreshVerticalVirtualScroll(): void {
@@ -477,25 +476,26 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     this._isFirstInc = true;
   }
 
-  public dragMoved(event: CdkDragMove): void {
+  public dragMoved(event: CdkDragMove, item: IProject | ITask): void {
 
     const myDraggedElmt: HTMLElement = event.source.element.nativeElement;
     const myElmtActualPosition: number = myDraggedElmt.getBoundingClientRect().left;
     const myDeltaX: number = myElmtActualPosition - this._dragInitPositionX;
-    const myDecimalPart = (myDeltaX / this.elmtCellWidth) % 1; // o resto da divisão de um número por 1 dá a parte décimal
+    const myDragScale: number = (this.elmtCellWidth * this.editScale) / this.viewScale;
+    const myDecimalPart: number = (myDeltaX / myDragScale) % 1; // o resto da divisão de um número por 1 dá a parte décimal
 
     if (event.delta.x > 0) {
 
       if (myDecimalPart >= 0) {
-        if ( myDecimalPart >= 0.5 && this._isFirstInc ) {
-          this.guideLinePositionLeft += this.elmtCellWidth;
+        if (myDecimalPart >= 0.5 && this._isFirstInc) {
+          this.guideLinePositionLeft += myDragScale;
           this._isFirstInc = false;
-        } else if ( myDecimalPart <= 0.49 ) {
+        } else if (myDecimalPart <= 0.49) {
           this._isFirstInc = true;
         }
       } else {
         if (myDecimalPart >= -0.49 && this._isFirstInc) {
-          this.guideLinePositionLeft += this.elmtCellWidth;
+          this.guideLinePositionLeft += myDragScale;
           this._isFirstInc = false;
         } else if (myDecimalPart <= -0.5) {
           this._isFirstInc = true;
@@ -504,14 +504,14 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     } else if (event.delta.x < 0) {
       if (myDecimalPart >= 0) {
         if (myDecimalPart <= 0.49 && this._isFirstInc) {
-          this.guideLinePositionLeft -= this.elmtCellWidth;
+          this.guideLinePositionLeft -= myDragScale;
           this._isFirstInc = false;
         } else if (myDecimalPart >= 0.5) {
           this._isFirstInc = true;
         }
       } else {
         if (myDecimalPart <= -0.5 && this._isFirstInc) {
-          this.guideLinePositionLeft -= this.elmtCellWidth;
+          this.guideLinePositionLeft -= myDragScale;
           this._isFirstInc = false;
         } else if (myDecimalPart >= -0.49) {
           this._isFirstInc = true;
@@ -519,7 +519,16 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
       }
     }
 
-    console.log(myDecimalPart + ' <-> ' + event.delta.x);
+    const myParentElmt: HTMLElement = myDraggedElmt.parentElement;
+    const myParentElmtPositionX = myParentElmt.getBoundingClientRect().left;
+    const myFinalPositionX: number = this.guideLinePositionLeft + myParentElmtPositionX;
+    const myFinalDeltaX: number = myFinalPositionX - this._dragInitPositionX;
+
+
+    // calcular através dos px movidos a diferença em minutos da posição original
+    const myDateDiff = (myFinalDeltaX) * (this.viewScale) / this.elmtCellWidth;
+
+    this.guideLineTimeInfo = moment(item.date.from).add(myDateDiff, 'minutes').toDate();
   }
 
   public itemDragged(event: CdkDragEnd, item: IProject | ITask): void {
@@ -543,7 +552,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     // código para fazer 'reset' ao drag... sem isto quando pegassemos duas vezes o mesmo elemento ele ia somar ao drag anterior!
     myDraggedElmt.style.transform = 'none';
     const source: any = event.source;
-    source._dragRef._passiveTransform = { x: 0, y: 0 };
+    source._dragRef._passiveTransform = {x: 0, y: 0};
 
     this.itemMovedEvt.emit(true);
     console.log(event);

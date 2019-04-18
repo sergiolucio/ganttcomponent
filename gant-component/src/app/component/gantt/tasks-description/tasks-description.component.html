@@ -55,11 +55,33 @@
     </div>
 
     <div class="task-from-date">
-      {{ project.date.from | date: 'd MMM yyyy - HH:mm' }}
+      {{ project.date.from | date: 'd MMM yyyy' }} -
+      <input type="number"
+             min="0"
+             max="23"
+             [ngModel]="(project.date.from | date: 'HH')"
+             (ngModelChange)="fromHourChanged($event, project)">
+      :
+      <input type="number"
+             min="0"
+             max="59"
+             [ngModel]="(project.date.from | date: 'mm')"
+             (ngModelChange)="fromMinutesChanged($event, project)">
     </div>
 
     <div class="task-to-date">
-      {{ project.date.to | date: 'd MMM yyyy - HH:mm' }}
+      {{ project.date.to | date: 'd MMM yyyy' }} -
+      <input type="number"
+               min="0"
+               max="23"
+               [ngModel]="(project.date.to | date: 'HH')"
+               (ngModelChange)="toHourChanged($event, project)">
+      :
+      <input type="number"
+             min="0"
+             max="59"
+             [ngModel]="(project.date.to | date: 'mm')"
+             (ngModelChange)="toMinutesChanged($event, project)">
     </div>
   </div>
 
@@ -93,10 +115,32 @@
       {{task.name}}
     </div>
     <div class="task-from-date">
-      {{task.date.from | date: 'd MMM yyyy - HH:mm' }}
+      {{ task.date.from | date: 'd MMM yyyy' }} -
+      <input type="number"
+             min="0"
+             max="23"
+             [ngModel]="(task.date.from | date: 'HH')"
+             (ngModelChange)="fromHourChanged($event, task)">
+      :
+      <input type="number"
+             min="0"
+             max="59"
+             [ngModel]="(task.date.from | date: 'mm')"
+             (ngModelChange)="fromMinutesChanged($event, task)">
     </div>
     <div class="task-to-date">
-      {{task.date.to | date: 'd MMM yyyy - HH:mm' }}
+      {{ task.date.to | date: 'd MMM yyyy' }} -
+      <input type="number"
+             min="0"
+             max="23"
+             [ngModel]="(task.date.to | date: 'HH')"
+             (ngModelChange)="toHourChanged($event, task)">
+      :
+      <input type="number"
+             min="0"
+             max="59"
+             [ngModel]="(task.date.to | date: 'mm')"
+             (ngModelChange)="toMinutesChanged($event, task)">
     </div>
   </div>
 

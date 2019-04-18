@@ -1,4 +1,5 @@
 <app-gantt-options-panel
+  *ngIf="inputOptionsPanelActive"
   [viewScale]="viewScale"
   (viewScaleChange)="viewScaleChanged($event)"
   [editScale]="editScale"
@@ -21,11 +22,12 @@
       <div class="row h-100 tables-container" (mousemove)="resizeTables($event)">
 
         <div class="tasks-description-container h-100 px-0" [style.width.px]="tasksDescWidth">
-         <app-tasks-description
-           (itemDraggedOrCollapsedEvt)="itemDraggedOrCollapsedEvtFired($event)"
-           [scrollPosition]="scrollPosition"
-           (scrollPositionChange)="scrollPositionChanged($event)"
-           [projectsObservable]="getProjects()"></app-tasks-description>
+          <app-tasks-description
+            (itemDraggedOrCollapsedEvt)="itemDraggedOrCollapsedEvtFired($event)"
+            [scrollPosition]="scrollPosition"
+            (scrollPositionChange)="scrollPositionChanged($event)"
+            [projectsObservable]="getProjects()"
+            (updateProjects)="initInspectProjects()"></app-tasks-description>
 
         </div>
 
@@ -74,7 +76,3 @@
   </div>
 
 </div>
-
-<pre>
-  {{inputOptions | json}}
-</pre>
