@@ -15,6 +15,7 @@ import {IProject, IProjects, ITask} from '../gantt.component.interface';
 import {Observable, Subscription} from 'rxjs';
 import {CdkDragDrop} from '@angular/cdk/drag-drop';
 import * as moment from 'moment';
+import {Moment} from 'moment';
 
 @Component({
   selector: 'app-tasks-description',
@@ -42,6 +43,9 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
   private _indexMin: number; // histórico do index dos items adicionados quando o scroll diminui
 
   @Output() updateProjects: EventEmitter<boolean>;
+
+  @Input() datePickerActive: boolean;
+  @Input() timePickerActive: boolean;
 
   constructor() {
     this.scrollPositionChange = new EventEmitter<number>();
@@ -276,31 +280,33 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
     this._indexMax = (this.projectsKeysDatasource.length - 1) + this._indexMin;
   }
 
-  public fromHourChanged(value: number, item: IProject | ITask): void {
-    if (value && value < 24 && value >= 0) {
-      item.date.from = moment(item.date.from).hours(value).toDate();
-    }
+  public fromDateChanged(event: any, item: IProject | ITask): void {
+    let myDate: Moment = moment(event.value);
+    myDate = myDate.hours(moment(item.date.from).hours()).minutes(moment(item.date.from).minutes());
+    item.date.from = myDate.toDate();
+
     this.updateProjects.emit();
   }
 
-  public fromMinutesChanged(value: number, item: IProject | ITask): void {
-    if (value && value < 60 && value >= 0) {
-      item.date.from = moment(item.date.from).minutes(value).toDate();
-    }
+  public toDateChanged(event: any, item: IProject | ITask): void {
+    let myDate: Moment = moment(event.value);
+    myDate = myDate.hours(moment(item.date.to).hours()).minutes(moment(item.date.to).minutes());
+    item.date.to = myDate.toDate();
+
     this.updateProjects.emit();
   }
 
-  public toHourChanged(value: number, item: IProject | ITask): void {
-    if (value && value < 24 && value >= 0) {
-      item.date.from = moment(item.date.from).hours(value).toDate();
-    }
+  public fromTimeChanged(event: any, item: IProject | ITask): void {
+    const myDate: Moment = moment(event);
+    item.date.from = moment(item.date.from).hours(myDate.hours()).minutes(myDate.minutes()).toDate();
+
     this.updateProjects.emit();
   }
 
-  public toMinutesChanged(value: number, item: IProject | ITask): void {
-    if (value && value < 60 && value >= 0) {
-      item.date.from = moment(item.date.from).minutes(value).toDate();
-    }
+  public toTimeChanged(event: any, item: IProject | ITask): void {
+    const myDate: Moment = moment(event);
+    item.date.to = moment(item.date.to).hours(myDate.hours()).minutes(myDate.minutes()).toDate();
+
     this.updateProjects.emit();
   }
 }

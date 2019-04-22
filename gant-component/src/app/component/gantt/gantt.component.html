@@ -27,6 +27,8 @@
             [scrollPosition]="scrollPosition"
             (scrollPositionChange)="scrollPositionChanged($event)"
             [projectsObservable]="getProjects()"
+            [datePickerActive]="datePickerActive"
+            [timePickerActive]="timePickerActive"
             (updateProjects)="initInspectProjects()"></app-tasks-description>
 
         </div>

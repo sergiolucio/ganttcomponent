@@ -1,6 +1,7 @@
 *:focus {
-  outline: 0;
+  outline: 0!important;
 }
+
 #tasks-description {
 
   width: 100%;
@@ -26,6 +27,22 @@
 
     div.task-from-date, div.task-to-date {
       width: 10rem;
+      i:hover {
+        cursor: pointer;
+      }
+
+      button {
+        width: 50%;
+        border: 0;
+        color: rgb(84, 85, 85);
+        font-size: 0.8rem;
+        text-align: left;
+        &:focus {
+          -webkit-box-shadow: none;
+          -moz-box-shadow: none;
+          box-shadow: none;
+        }
+      }
     }
 
 

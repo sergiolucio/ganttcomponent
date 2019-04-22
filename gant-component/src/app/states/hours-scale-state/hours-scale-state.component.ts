@@ -12,6 +12,8 @@ export class HoursScaleStateComponent implements OnInit {
   public inputOptions: IInputOptions;
   public projects: IProjects;
   public inputPanelOptionsActive: boolean;
+  public timePickerActive: boolean;
+  public datePickerActive: boolean;
 
   constructor(
     private _ganttUtilsService: GanttUtilsService
@@ -22,5 +24,7 @@ export class HoursScaleStateComponent implements OnInit {
     this.inputOptions = this._ganttUtilsService.generateInputOptions();
     this.projects = this._ganttUtilsService.generateProjects();
     this.inputPanelOptionsActive = true;
+    this.timePickerActive = false;
+    this.datePickerActive = true;
   }
 }

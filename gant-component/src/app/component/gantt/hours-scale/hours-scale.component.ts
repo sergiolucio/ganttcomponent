@@ -555,6 +555,5 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     source._dragRef._passiveTransform = {x: 0, y: 0};
 
     this.itemMovedEvt.emit(true);
-    console.log(event);
   }
 }

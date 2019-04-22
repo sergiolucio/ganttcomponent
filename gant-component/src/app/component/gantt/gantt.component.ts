@@ -13,6 +13,8 @@ export class GanttComponent implements OnInit, OnChanges {
   // inputs recebidos  de opções
   @Input() inputOptionsPanelActive: boolean;
   @Input() inputOptions: IInputOptions;
+  @Input() datePickerActive: boolean;
+  @Input() timePickerActive: boolean;
   public viewScale: number;
   public editScale: number;
   public fromRange: Date;

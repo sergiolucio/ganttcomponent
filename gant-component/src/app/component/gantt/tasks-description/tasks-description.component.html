@@ -55,33 +55,15 @@
     </div>
 
     <div class="task-from-date">
-      {{ project.date.from | date: 'd MMM yyyy' }} -
-      <input type="number"
-             min="0"
-             max="23"
-             [ngModel]="(project.date.from | date: 'HH')"
-             (ngModelChange)="fromHourChanged($event, project)">
-      :
-      <input type="number"
-             min="0"
-             max="59"
-             [ngModel]="(project.date.from | date: 'mm')"
-             (ngModelChange)="fromMinutesChanged($event, project)">
+
+      <ng-container *ngTemplateOutlet="fromCellTemplate; context: {item: project}"></ng-container>
+
     </div>
 
     <div class="task-to-date">
-      {{ project.date.to | date: 'd MMM yyyy' }} -
-      <input type="number"
-               min="0"
-               max="23"
-               [ngModel]="(project.date.to | date: 'HH')"
-               (ngModelChange)="toHourChanged($event, project)">
-      :
-      <input type="number"
-             min="0"
-             max="59"
-             [ngModel]="(project.date.to | date: 'mm')"
-             (ngModelChange)="toMinutesChanged($event, project)">
+
+      <ng-container *ngTemplateOutlet="toCellTemplate; context: {item: project}"></ng-container>
+
     </div>
   </div>
 
@@ -115,34 +97,132 @@
       {{task.name}}
     </div>
     <div class="task-from-date">
-      {{ task.date.from | date: 'd MMM yyyy' }} -
-      <input type="number"
-             min="0"
-             max="23"
-             [ngModel]="(task.date.from | date: 'HH')"
-             (ngModelChange)="fromHourChanged($event, task)">
-      :
-      <input type="number"
-             min="0"
-             max="59"
-             [ngModel]="(task.date.from | date: 'mm')"
-             (ngModelChange)="fromMinutesChanged($event, task)">
+
+      <ng-container *ngTemplateOutlet="fromCellTemplate; context: {item: task}"></ng-container>
+
     </div>
+
     <div class="task-to-date">
-      {{ task.date.to | date: 'd MMM yyyy' }} -
-      <input type="number"
-             min="0"
-             max="23"
-             [ngModel]="(task.date.to | date: 'HH')"
-             (ngModelChange)="toHourChanged($event, task)">
-      :
-      <input type="number"
-             min="0"
-             max="59"
-             [ngModel]="(task.date.to | date: 'mm')"
-             (ngModelChange)="toMinutesChanged($event, task)">
+      <ng-container *ngTemplateOutlet="toCellTemplate; context: {item: task}"></ng-container>
     </div>
   </div>
 
 </ng-template>
 
+<!--template dos date e time picker da data 'from' -->
+<ng-template #fromCellTemplate let-item="item">
+  <ng-template #popFromDateTitle>
+    <div class="container text-right px-0">
+      <i class="fa fa-times" aria-hidden="true" (click)="dateFromPickerPopover.close()"></i>
+    </div>
+  </ng-template>
+
+  <ng-template #popFromDateContent>
+
+    <mat-form-field class="date-picker">
+      <input matInput
+             (dateInput)="fromDateChanged($event, item)"
+             [matDatepicker]="fromDatePicker"
+             [ngModel]="item.date.from">
+      <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
+      <mat-datepicker #fromDatePicker></mat-datepicker>
+    </mat-form-field>
+
+  </ng-template>
+
+  <ng-template #popFromTimeTitle>
+    <div class="container text-right px-0">
+      <i class="fa fa-times" aria-hidden="true" (click)="timeFromPickerPopover.close()"></i>
+    </div>
+  </ng-template>
+
+  <ng-template #popFromTimeContent>
+    <ngb-timepicker size="small" [ngModel]="item.date.from" (ngModelChange)="fromTimeChanged($event, item)"></ngb-timepicker>
+  </ng-template>
+
+  <button
+    type="button"
+    class="btn btn-outline-secondary"
+    #dateFromPickerPopover="ngbPopover"
+    [disablePopover]="!datePickerActive"
+    [autoClose]="false"
+    triggers="manual"
+    (click)="dateFromPickerPopover.toggle()"
+    [popoverTitle]="popFromDateTitle"
+    [ngbPopover]="popFromDateContent">
+    {{ item.date.from | date: 'd MMM yyyy' }}
+  </button>
+
+  <button
+    type="button"
+    class="btn btn-outline-secondary"
+    #timeFromPickerPopover="ngbPopover"
+    [disablePopover]="!timePickerActive"
+    [autoClose]="false"
+    triggers="manual"
+    (click)="timeFromPickerPopover.toggle()"
+    [popoverTitle]="popFromTimeTitle"
+    [ngbPopover]="popFromTimeContent">
+    {{ item.date.from | date: 'HH:mm' }}
+  </button>
+</ng-template>
+
+<!--template dos date e time picker da data 'to'-->
+<ng-template #toCellTemplate let-item="item">
+  <ng-template #popToDateTitle>
+    <div class="container text-right px-0">
+      <i class="fa fa-times" aria-hidden="true" (click)="dateToPickerPopover.close()"></i>
+    </div>
+  </ng-template>
+
+  <ng-template #popToDateContent>
+
+    <mat-form-field class="date-picker">
+      <input matInput
+             (dateInput)="toDateChanged($event, item)"
+             [matDatepicker]="toDatePicker"
+             [ngModel]="item.date.to">
+      <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
+      <mat-datepicker #toDatePicker></mat-datepicker>
+    </mat-form-field>
+
+  </ng-template>
+
+  <ng-template #popToTimeTitle>
+    <div class="container text-right px-0">
+      <i class="fa fa-times" aria-hidden="true" (click)="timeToPickerPopover.close()"></i>
+    </div>
+  </ng-template>
+
+  <ng-template #popToTimeContent>
+
+    <ngb-timepicker size="small" [ngModel]="item.date.to" (ngModelChange)="toTimeChanged($event, item)"></ngb-timepicker>
+
+  </ng-template>
+
+  <button
+    type="button"
+    class="btn btn-outline-secondary"
+    #dateToPickerPopover="ngbPopover"
+    [disablePopover]="!datePickerActive"
+    [autoClose]="false"
+    triggers="manual"
+    (click)="dateToPickerPopover.toggle()"
+    [popoverTitle]="popToDateTitle"
+    [ngbPopover]="popToDateContent">
+    {{ item.date.to | date: 'd MMM yyyy' }}
+  </button>
+
+  <button
+    type="button"
+    class="btn btn-outline-secondary"
+    #timeToPickerPopover="ngbPopover"
+    [disablePopover]="!timePickerActive"
+    [autoClose]="false"
+    triggers="manual"
+    (click)="timeToPickerPopover.toggle()"
+    [popoverTitle]="popToTimeTitle"
+    [ngbPopover]="popToTimeContent">
+    {{ item.date.to | date: 'HH:mm' }}
+  </button>
+</ng-template>
