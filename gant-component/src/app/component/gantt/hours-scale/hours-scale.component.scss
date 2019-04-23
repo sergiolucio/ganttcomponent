@@ -59,19 +59,57 @@
 
         .background-tasks-content {
 
-          div.project-cell {
+          div.project-resizable {
+            display: flex;
             position: relative;
             margin-top: 1rem;
             height: 1rem;
             border-radius: 2px;
-            overflow: hidden;
 
             &:first-of-type {
               margin-top: 0.5rem;
             }
 
-            &:hover {
+            .project-cell:hover {
               cursor: pointer;
+            }
+
+            div.left-limit, div.right-limit {
+              width: 5px;
+              height: 100%;
+            }
+
+            div.left-limit:hover {
+              cursor: w-resize;
+            }
+
+            div.right-limit:hover {
+              cursor: e-resize;
+            }
+
+            div.left-circle, div.right-circle {
+              display: none;
+              position: absolute;
+              top: 0.25rem;
+              width: 0.5rem;
+              border-radius: 50%;
+              background-color: black;
+              height: 0.5rem;
+              &:hover {
+                cursor: cell;
+              }
+            }
+
+            div.left-circle {
+              left: -0.6rem;
+            }
+
+            div.right-circle {
+              right: -0.6rem;
+            }
+
+            &:hover div.left-circle, &:hover div.right-circle {
+              display: block;
             }
           }
         }

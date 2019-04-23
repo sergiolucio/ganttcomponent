@@ -74,6 +74,9 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
   private _isFirstInc: boolean;
   public guideLineTimeInfo: Date;
 
+  // variáveis do resize das tarefas
+  private _projectCellElmt: HTMLElement;
+
   constructor() {
     this.verticalScrollPositionChange = new EventEmitter<number>();
     this.itemMovedEvt = new EventEmitter<boolean>();
@@ -474,6 +477,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     const myDragScale: number = (this.elmtCellWidth * this.editScale) / this.viewScale;
     const myDecimalPart: number = (myDeltaX / myDragScale) % 1; // o resto da divisão de um número por 1 dá a parte décimal
 
+    console.log(myDraggedElmt);
     if (event.delta.x > 0) {
 
       if (myDecimalPart >= 0) {

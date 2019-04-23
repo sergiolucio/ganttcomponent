@@ -40,14 +40,31 @@
 <!--==================================================================-->
 
 <ng-template #projectTemplate let-item="item">
-  <div class="project-cell"
-       [ngStyle]="item._detailsStyle"
-       [style.left.px]="-freeSpaceLeft"
+
+  <div class="project-resizable"
        cdkDrag
+       cdkDragLockAxis="x"
        (cdkDragStarted)="startDrag($event)"
        (cdkDragMoved)="dragMoved($event, item)"
        (cdkDragEnded)="itemDragged($event, item)"
-       cdkDragLockAxis="x">{{item.name}}</div>
+       [ngStyle]="item._detailsStyle"
+       [style.left.px]="-freeSpaceLeft">
+
+    <div class="left-circle"></div>
+
+    <div class="left-limit"></div>
+
+    <div class="project-cell"
+         [style.width]="item._detailsStyle['width']"
+         cdkDragHandle>
+      {{item.name}}
+    </div>
+
+    <div class="right-limit"></div>
+
+    <div class="right-circle"></div>
+
+  </div>
 
   <ng-template [ngIf]="item._hasTasks && !item.collapsed">
     <ng-template ngFor let-taskKey [ngForOf]="item._tasksKeys">
@@ -63,13 +80,26 @@
 </ng-template>
 
 <ng-template #taskTemplate let-task="task">
-  <div class="project-cell"
-       [ngStyle]="task._detailsStyle"
-       [style.left.px]="-freeSpaceLeft"
+
+  <div class="project-resizable"
        cdkDrag
+       cdkDragLockAxis="x"
        (cdkDragStarted)="startDrag($event)"
        (cdkDragMoved)="dragMoved($event, task)"
        (cdkDragEnded)="itemDragged($event, task)"
-       cdkDragLockAxis="x">{{task.name}}</div>
+       [ngStyle]="task._detailsStyle"
+       [style.left.px]="-freeSpaceLeft"
+  >
+    <div class="left-circle"></div>
+
+    <div class="left-limit"></div>
+
+    <div class="project-cell" [style.width]="task._detailsStyle['width']" cdkDragHandle>{{task.name}}</div>
+
+    <div class="right-limit"></div>
+
+    <div class="right-circle"></div>
+
+  </div>
 </ng-template>
 
