@@ -23,6 +23,7 @@ export class GanttComponent implements OnInit, OnChanges {
   @Input() scaleState: EScaleStates;
 
   @Input() projects: IProjects;
+  public projectsKeys: Array<string>;
   public projectsCounter: number;
   public itemDraggedOrCollapsedEvt: boolean;
 
@@ -56,6 +57,7 @@ export class GanttComponent implements OnInit, OnChanges {
 
     if (this.projects) {
       this.initInspectProjects();
+      this._initProjectsKeys();
     }
 
     this.itemDraggedOrCollapsedEvt = false;
@@ -75,6 +77,7 @@ export class GanttComponent implements OnInit, OnChanges {
 
     if (projects && !projects.isFirstChange()) {
       this.initInspectProjects();
+      this._initProjectsKeys();
     }
   }
 
@@ -159,7 +162,10 @@ export class GanttComponent implements OnInit, OnChanges {
     }
 
     if (project._hasTasks) {
+      project._tasksKeys = [];
+
       for (const taskKey of Object.keys(project.tasks)) {
+        project._tasksKeys.push(taskKey);
         this.projectsCounter++; // só para imprimir na consola o número de items carregados
         this._itemsByProject++;
 
@@ -180,7 +186,9 @@ export class GanttComponent implements OnInit, OnChanges {
     }
 
     if (project._hasChildren) {
+      project._projectChildrenKeys = [];
       for (const projKey of Object.keys(project.projectChildren)) {
+        project._projectChildrenKeys.push(projKey);
         this._inspectProjects(project.projectChildren[projKey], mainProjectColor ? mainProjectColor : project.color);
       }
     }
@@ -220,6 +228,14 @@ export class GanttComponent implements OnInit, OnChanges {
     this.viewScale = this.inputOptions.viewScale;
     this.fromRange = this.inputOptions.range.from;
     this.toRange = this.inputOptions.range.to;
+  }
+
+  private _initProjectsKeys(): void {
+    this.projectsKeys = [];
+
+    for (const projKey of Object.keys(this.projects)) {
+      this.projectsKeys.push(projKey);
+    }
   }
 
   public viewScaleChanged(value: number): void {

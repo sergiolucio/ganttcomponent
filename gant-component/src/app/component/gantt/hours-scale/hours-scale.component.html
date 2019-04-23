@@ -1,4 +1,3 @@
-
 <div id="tasks-content" class="container-fluid h-100 px-0">
 
   <div id="background-content" #horizontalScrollViewPort class="container-fluid h-100 px-0">
@@ -51,25 +50,26 @@
        cdkDragLockAxis="x">{{item.name}}</div>
 
   <ng-template [ngIf]="item._hasTasks && !item.collapsed">
-    <ng-container *ngTemplateOutlet="taskTemplate; context: {tasks: item.tasks}"></ng-container>
+    <ng-template ngFor let-taskKey [ngForOf]="item._tasksKeys">
+      <ng-container *ngTemplateOutlet="taskTemplate; context: {task: item.tasks[taskKey]}"></ng-container>
+    </ng-template>
   </ng-template>
 
   <ng-template [ngIf]="item._hasChildren && !item.collapsed">
-    <ng-template ngFor let-proj [ngForOf]="item.projectChildren | keyvalue">
-      <ng-container *ngTemplateOutlet="projectTemplate; context: {item: proj.value}"></ng-container>
+    <ng-template ngFor let-projKey [ngForOf]="item._projectChildrenKeys">
+      <ng-container *ngTemplateOutlet="projectTemplate; context: {item: item.projectChildren[projKey]}"></ng-container>
     </ng-template>
   </ng-template>
 </ng-template>
 
-<ng-template #taskTemplate let-tasks="tasks">
-  <ng-template ngFor let-task [ngForOf]="tasks | keyvalue">
-    <div class="project-cell"
-         [ngStyle]="task.value._detailsStyle"
-         [style.left.px]="-freeSpaceLeft"
-         cdkDrag
-         (cdkDragStarted)="startDrag($event)"
-         (cdkDragMoved)="dragMoved($event, task.value)"
-         (cdkDragEnded)="itemDragged($event, task.value)"
-         cdkDragLockAxis="x">{{task.value.name}}</div>
-  </ng-template>
+<ng-template #taskTemplate let-task="task">
+  <div class="project-cell"
+       [ngStyle]="task._detailsStyle"
+       [style.left.px]="-freeSpaceLeft"
+       cdkDrag
+       (cdkDragStarted)="startDrag($event)"
+       (cdkDragMoved)="dragMoved($event, task)"
+       (cdkDragEnded)="itemDragged($event, task)"
+       cdkDragLockAxis="x">{{task.name}}</div>
 </ng-template>
+

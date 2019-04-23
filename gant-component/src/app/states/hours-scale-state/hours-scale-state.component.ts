@@ -24,7 +24,7 @@ export class HoursScaleStateComponent implements OnInit {
     this.inputOptions = this._ganttUtilsService.generateInputOptions();
     this.projects = this._ganttUtilsService.generateProjects();
     this.inputPanelOptionsActive = true;
-    this.timePickerActive = false;
+    this.timePickerActive = true;
     this.datePickerActive = true;
   }
 }

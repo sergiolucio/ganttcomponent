@@ -27,6 +27,7 @@
             [scrollPosition]="scrollPosition"
             (scrollPositionChange)="scrollPositionChanged($event)"
             [projectsObservable]="getProjects()"
+            [(projectsKeys)]="projectsKeys"
             [datePickerActive]="datePickerActive"
             [timePickerActive]="timePickerActive"
             (updateProjects)="initInspectProjects()"></app-tasks-description>
@@ -56,6 +57,7 @@
                 [elmtCellWidth]="cellWidth"
                 (itemMovedEvt)="itemMovedEvt()"
                 [projectsObservable]="getProjects()"
+                [projectsKeys]="projectsKeys"
                 [viewScale]="viewScale"
                 (viewScaleChange)="viewScaleChanged($event)"
                 [editScale]="editScale"

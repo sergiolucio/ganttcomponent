@@ -11,9 +11,9 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import {IProject, IProjects, ITask} from '../gantt.component.interface';
+import {IProject, IProjects, ITask, ITasks} from '../gantt.component.interface';
 import {Observable, Subscription} from 'rxjs';
-import {CdkDragDrop} from '@angular/cdk/drag-drop';
+import {CdkDragDrop, moveItemInArray} from '@angular/cdk/drag-drop';
 import * as moment from 'moment';
 import {Moment} from 'moment';
 
@@ -28,7 +28,8 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
   @Input() projectsObservable: Observable<IProjects>;
   private _subscription: Subscription;
   public projects: IProjects;
-  private _projectsKeys: Array<string>;
+  @Input() projectsKeys: Array<string>;
+  @Output() projectsKeysChange: EventEmitter<Array<string>>;
   public projectsKeysDatasource: Array<string>;
   @Output() itemDraggedOrCollapsedEvt: EventEmitter<boolean>;
   private _itemDraggedOrCollapsedEvt: boolean;
@@ -42,6 +43,7 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
   private _indexMax: number; // histórico do index dos items adicionados quando o scroll aumenta
   private _indexMin: number; // histórico do index dos items adicionados quando o scroll diminui
 
+  // Output que informa que é preciso atualizar a lista de projectos - ex. qd alteram as suas horas e data
   @Output() updateProjects: EventEmitter<boolean>;
 
   @Input() datePickerActive: boolean;
@@ -51,6 +53,7 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
     this.scrollPositionChange = new EventEmitter<number>();
     this.itemDraggedOrCollapsedEvt = new EventEmitter<boolean>();
     this.updateProjects = new EventEmitter<boolean>();
+    this.projectsKeysChange = new EventEmitter<Array<string>>();
   }
 
   ngOnInit() {
@@ -58,8 +61,6 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
     this._subscription = this.projectsObservable.subscribe((value: IProjects) => {
       this.projects = value;
     });
-
-    this._initProjectsKeys();
 
     this._itemDraggedOrCollapsedEvt = false;
 
@@ -79,14 +80,6 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
     this._dettachScrollEvent();
   }
 
-  private _initProjectsKeys(): void {
-    this._projectsKeys = [];
-
-    for (const projKey of Object.keys(this.projects)) {
-      this._projectsKeys.push(projKey);
-    }
-  }
-
   public toggleCollapseProject(projectClicked: IProject): void {
     projectClicked.collapsed = !projectClicked.collapsed;
     this._refreshVirtualScroll();
@@ -95,29 +88,17 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   public dropInside(event: CdkDragDrop<string[]>) {
+    const myPreviousIndex: number = event.container.data.findIndex((element) => {
+      if (event.item.data === element) {
+        return true;
+      }
+    });
+    const myCurrentIndex: number = myPreviousIndex + (event.currentIndex - event.previousIndex);
 
-    let arrayAux: Array<any>;
-    arrayAux = [];
-
-    for (const itemKey of Object.keys(event.container.data)) {
-      arrayAux.push(event.container.data[itemKey]);
-      delete event.container.data[itemKey];
-    }
-
-    const objAux: any = arrayAux[event.previousIndex];
-
-    arrayAux.splice(event.previousIndex, 1);
-    arrayAux.splice(event.currentIndex, 0, objAux);
-
-    for (const item of arrayAux) {
-      event.container.data[item.name] = item;
-    }
-
-    this._initProjectsKeys();
+    moveItemInArray(event.container.data, myPreviousIndex, myCurrentIndex);
 
     this._itemDraggedOrCollapsedEvt = !this._itemDraggedOrCollapsedEvt;
     this.itemDraggedOrCollapsedEvt.emit(this._itemDraggedOrCollapsedEvt);
-
     this._refreshVirtualScroll();
   }
 
@@ -177,9 +158,9 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
         // -> verificar se há mais a renderizar (this._indexMax < último elemento de this.projects)
         // scrollHeight - scrollTop - scrollViewPortHeight > 0 -> ou mais alguns pixeis de segurança
 
-        if (myScrollHeight - myScrollTop - myScrollViewPortHeight <= 30 && this._indexMax < this._projectsKeys.length - 1) {
+        if (myScrollHeight - myScrollTop - myScrollViewPortHeight <= 30 && this._indexMax < this.projectsKeys.length - 1) {
           this._indexMax++;
-          this.projectsKeysDatasource.push(this._projectsKeys[this._indexMax]);
+          this.projectsKeysDatasource.push(this.projectsKeys[this._indexMax]);
         }
 
       } else {
@@ -210,7 +191,7 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
         if (myScrollTop <= this.freeSpaceTop + 30 && this._indexMin > 0) {
 
           this._indexMin--;
-          this.projectsKeysDatasource.unshift(this._projectsKeys[this._indexMin]);
+          this.projectsKeysDatasource.unshift(this.projectsKeys[this._indexMin]);
           let myElmtAdded: number;
 
           if (this.projects[this.projectsKeysDatasource[0]].collapsed) {
@@ -238,12 +219,12 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
 
     let i: number;
     for (i = 0; myRenderedHeight <= myScrollViewPortHeight; i++) {
-      this.projectsKeysDatasource.push(this._projectsKeys[i]);
+      this.projectsKeysDatasource.push(this.projectsKeys[i]);
 
-      if (this.projects[this._projectsKeys[i]].collapsed) {
+      if (this.projects[this.projectsKeys[i]].collapsed) {
         myRenderedHeight += 32;
       } else {
-        myRenderedHeight += this.projects[this._projectsKeys[i]]._projectItems * 32;
+        myRenderedHeight += this.projects[this.projectsKeys[i]]._projectItems * 32;
         // _projectItems tem o nº total de items por project; 32 é o nº de px por row
       }
     }
@@ -265,12 +246,12 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
     i = this._indexMin;
 
     do {
-      this.projectsKeysDatasource.push(this._projectsKeys[i]);
+      this.projectsKeysDatasource.push(this.projectsKeys[i]);
 
-      if (this.projects[this._projectsKeys[i]].collapsed) {
+      if (this.projects[this.projectsKeys[i]].collapsed) {
         myRenderedHeight += 32;
       } else {
-        myRenderedHeight += this.projects[this._projectsKeys[i]]._projectItems * 32;
+        myRenderedHeight += this.projects[this.projectsKeys[i]]._projectItems * 32;
         // _projectItems tem o nº total de items por project; 32 é o nº de px por row
       }
 
@@ -280,7 +261,7 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
     this._indexMax = (this.projectsKeysDatasource.length - 1) + this._indexMin;
   }
 
-  public fromDateChanged(event: any, item: IProject | ITask): void {
+  public fromDateChanged(event: any, item: ITask): void {
     let myDate: Moment = moment(event.value);
     myDate = myDate.hours(moment(item.date.from).hours()).minutes(moment(item.date.from).minutes());
     item.date.from = myDate.toDate();
@@ -288,7 +269,7 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
     this.updateProjects.emit();
   }
 
-  public toDateChanged(event: any, item: IProject | ITask): void {
+  public toDateChanged(event: any, item: ITask): void {
     let myDate: Moment = moment(event.value);
     myDate = myDate.hours(moment(item.date.to).hours()).minutes(moment(item.date.to).minutes());
     item.date.to = myDate.toDate();
@@ -296,7 +277,7 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
     this.updateProjects.emit();
   }
 
-  public fromTimeChanged(event: any, item: IProject | ITask): void {
+  public fromTimeChanged(event: any, item: ITask): void {
     const myDate: Moment = moment(event);
     item.date.from = moment(item.date.from).hours(myDate.hours()).minutes(myDate.minutes()).toDate();
 

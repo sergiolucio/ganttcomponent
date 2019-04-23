@@ -30,7 +30,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
   @Input() projectsObservable: Observable<IProjects>;
   private _projectsSubscription: Subscription;
   public projects: IProjects;
-  private _projectsKeys: Array<string>;
+  @Input() projectsKeys: Array<string>;
   public projectsKeysDatasource: Array<string>;
   @Input() itemDraggedOrCollapsedEvt: boolean;
 
@@ -92,11 +92,6 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
       this.projects = value;
     });
 
-    this._projectsKeys = [];
-    for (const projKey of Object.keys(this.projects)) {
-      this._projectsKeys.push(projKey);
-    }
-
     // 1 dia = 24h = 1440 min
     // 1 célula  <->  1 viewScale (ex. 60 min)
     // x células <->  1 dia (1440 min)
@@ -125,7 +120,6 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
       itemDraggedOrCollapsedEvt
     }: SimpleChanges
   ): void {
-
     if (viewScale && !viewScale.isFirstChange()) {
 
       this._setScaleRange();
@@ -175,10 +169,6 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     if (itemDraggedOrCollapsedEvt && !itemDraggedOrCollapsedEvt.isFirstChange()) {
-      this._projectsKeys = [];
-      for (const projKey of Object.keys(this.projects)) {
-        this._projectsKeys.push(projKey);
-      }
       this._refreshVerticalVirtualScroll();
     }
   }
@@ -215,12 +205,12 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
 
     let i: number;
     for (i = 0; myRenderedHeight <= myScrollViewPortHeight; i++) {
-      this.projectsKeysDatasource.push(this._projectsKeys[i]);
+      this.projectsKeysDatasource.push(this.projectsKeys[i]);
 
-      if (this.projects[this._projectsKeys[i]].collapsed) {
+      if (this.projects[this.projectsKeys[i]].collapsed) {
         myRenderedHeight += 32;
       } else {
-        myRenderedHeight += this.projects[this._projectsKeys[i]]._projectItems * 32;
+        myRenderedHeight += this.projects[this.projectsKeys[i]]._projectItems * 32;
         // _projectItems tem o nº total de items por project; 32 é o nº de px por row
       }
     }
@@ -242,12 +232,12 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     i = this._indexMin;
 
     do {
-      this.projectsKeysDatasource.push(this._projectsKeys[i]);
+      this.projectsKeysDatasource.push(this.projectsKeys[i]);
 
-      if (this.projects[this._projectsKeys[i]].collapsed) {
+      if (this.projects[this.projectsKeys[i]].collapsed) {
         myRenderedHeight += 32;
       } else {
-        myRenderedHeight += this.projects[this._projectsKeys[i]]._projectItems * 32;
+        myRenderedHeight += this.projects[this.projectsKeys[i]]._projectItems * 32;
         // _projectItems tem o nº total de items por project; 32 é o nº de px por row
       }
 
@@ -388,9 +378,9 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
         // -> verificar se há mais a renderizar (this._indexMax < último elemento de this.projects)
         // scrollHeight - scrollTop - scrollViewPortHeight > 0 -> ou mais alguns pixeis de segurança
 
-        if (myScrollHeight - myScrollTop - myScrollViewPortHeight <= 30 && this._indexMax < this._projectsKeys.length - 1) {
+        if (myScrollHeight - myScrollTop - myScrollViewPortHeight <= 30 && this._indexMax < this.projectsKeys.length - 1) {
           this._indexMax++;
-          this.projectsKeysDatasource.push(this._projectsKeys[this._indexMax]);
+          this.projectsKeysDatasource.push(this.projectsKeys[this._indexMax]);
         }
 
       } else {
@@ -421,7 +411,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
         if (myScrollTop <= this.freeSpaceTop + 30 && this._indexMin > 0) {
 
           this._indexMin--;
-          this.projectsKeysDatasource.unshift(this._projectsKeys[this._indexMin]);
+          this.projectsKeysDatasource.unshift(this.projectsKeys[this._indexMin]);
           let myElmtAdded: number;
 
           if (this.projects[this.projectsKeysDatasource[0]].collapsed) {

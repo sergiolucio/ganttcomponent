@@ -14,7 +14,7 @@
   <div class="row header bg-light">
   </div>
 
-  <div cdkDropList (cdkDropListDropped)="dropInside($event)" [cdkDropListData]="projects">
+  <div cdkDropList (cdkDropListDropped)="dropInside($event)" [cdkDropListData]="projectsKeys">
 
     <div class="scroll-viewport" #scrollViewPort>
 
@@ -25,6 +25,7 @@
 
         </div>
       </div>
+
     </div>
 
   </div>
@@ -68,20 +69,19 @@
   </div>
 
   <ng-template [ngIf]="project._hasTasks && !project.collapsed">
-    <div cdkDropList (cdkDropListDropped)="dropInside($event)" [cdkDropListData]="project.tasks">
-      <div *ngFor="let task of project.tasks | keyvalue" cdkDrag [cdkDragData]="project.tasks[task.key]">
+    <div cdkDropList (cdkDropListDropped)="dropInside($event)" [cdkDropListData]="project._tasksKeys">
+      <div *ngFor="let taskKey of project._tasksKeys" cdkDrag [cdkDragData]="taskKey">
         <ng-container
-          *ngTemplateOutlet="templateTask; context: { task: task.value }"></ng-container>
+          *ngTemplateOutlet="templateTask; context: { task: project.tasks[taskKey] }"></ng-container>
       </div>
     </div>
   </ng-template>
 
   <ng-template [ngIf]="project._hasChildren && !project.collapsed">
-    <div cdkDropList (cdkDropListDropped)="dropInside($event)" [cdkDropListData]="project.projectChildren">
-      <div *ngFor="let proj of project.projectChildren | keyvalue" cdkDrag
-           [cdkDragData]="project.projectChildren[proj.key]">
+    <div cdkDropList (cdkDropListDropped)="dropInside($event)" [cdkDropListData]="project._projectChildrenKeys">
+      <div *ngFor="let projKey of project._projectChildrenKeys" cdkDrag [cdkDragData]="projKey">
         <ng-container
-          *ngTemplateOutlet="templateProject; context: { project: proj.value }"></ng-container>
+          *ngTemplateOutlet="templateProject; context: { project: project.projectChildren[projKey] }"></ng-container>
       </div>
     </div>
   </ng-template>

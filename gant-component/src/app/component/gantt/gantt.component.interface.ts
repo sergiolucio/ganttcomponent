@@ -12,18 +12,13 @@ export interface IProjects {
   [id: string]: IProject;
 }
 
-export interface IProject {
-  name: string;
-  color: string;
-  date: IDate;
-  tasks?: ITasks;
+export interface IProject extends ITask {
   _hasTasks?: boolean;
-  projectChildren?: IProjects;
+  tasks?: ITasks;
+  _tasksKeys?: Array<string>;
   _hasChildren?: boolean;
-  genealogyDegree: number;
-  collapsed: boolean;
-  _descriptionStyle?: IStyle;
-  _detailsStyle?: IStyle;
+  projectChildren?: IProjects;
+  _projectChildrenKeys?: Array<string>;
   _projectItems?: number;
 }
 
@@ -49,8 +44,8 @@ export interface IDate {
 }
 
 export interface IDependencies {
-  from?: ITasks;
-  to?: ITasks;
+  from?: ITask;
+  to?: ITask;
 }
 
 interface IStyle {
