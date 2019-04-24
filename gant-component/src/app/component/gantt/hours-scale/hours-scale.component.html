@@ -52,7 +52,12 @@
 
     <div class="left-circle"></div>
 
-    <div class="left-limit"></div>
+    <div class="left-limit"
+         cdkDrag
+         cdkDragLockAxis="x"
+         (cdkDragStarted)="startResizeTaskLeftSide($event, item)"
+         (cdkDragMoved)="resizingTaskLeftSide($event, item)"
+         (cdkDragEnded)="endResizeTaskLeftSide($event, item)"></div>
 
     <div class="project-cell"
          [style.width]="item._detailsStyle['width']"
@@ -60,7 +65,12 @@
       {{item.name}}
     </div>
 
-    <div class="right-limit"></div>
+    <div class="right-limit"
+         cdkDrag
+         cdkDragLockAxis="x"
+         (cdkDragStarted)="startResizeTaskRightSide($event, item)"
+         (cdkDragMoved)="resizingTaskRightSide($event, item)"
+         (cdkDragEnded)="endResizeTaskRightSide($event, item)"></div>
 
     <div class="right-circle"></div>
 
@@ -92,11 +102,21 @@
   >
     <div class="left-circle"></div>
 
-    <div class="left-limit"></div>
+    <div class="left-limit"
+         cdkDrag
+         cdkDragLockAxis="x"
+         (cdkDragStarted)="startResizeTaskLeftSide($event, task)"
+         (cdkDragMoved)="resizingTaskLeftSide($event, task)"
+         (cdkDragEnded)="endResizeTaskLeftSide($event, task)"></div>
 
     <div class="project-cell" [style.width]="task._detailsStyle['width']" cdkDragHandle>{{task.name}}</div>
 
-    <div class="right-limit"></div>
+    <div class="right-limit"
+         cdkDrag
+         cdkDragLockAxis="x"
+         (cdkDragStarted)="startResizeTaskRightSide($event, task)"
+         (cdkDragMoved)="resizingTaskRightSide($event, task)"
+         (cdkDragEnded)="endResizeTaskRightSide($event, task)"></div>
 
     <div class="right-circle"></div>
 

@@ -98,7 +98,7 @@ export class GanttUtilsService {
 
   public generateInputOptions(): IInputOptions {
     return {
-      viewScale: 60,
+      viewScale: 360,
       editScale: 60,
       range: {
         from: moment('04-04-2019 00:00', 'DD-MM-YYYY HH:mm').toDate(), // moment('00:00', 'HH:mm').subtract(5, 'days').toDate();

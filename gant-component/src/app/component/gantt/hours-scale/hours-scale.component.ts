@@ -75,7 +75,10 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
   public guideLineTimeInfo: Date;
 
   // variáveis do resize das tarefas
-  private _projectCellElmt: HTMLElement;
+  private _resizeTaskStarted: boolean;
+  private _taskInitWidth: number;
+  private _taskInitX: number;
+  private _taskInitMarginLeft: number;
 
   constructor() {
     this.verticalScrollPositionChange = new EventEmitter<number>();
@@ -90,6 +93,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
 
     this.itemDraggedOrCollapsedEvt = false;
     this.guideLineVisible = false;
+    this._resizeTaskStarted = false;
 
     this._projectsSubscription = this.projectsObservable.subscribe((value: IProjects) => {
       this.projects = value;
@@ -477,7 +481,6 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     const myDragScale: number = (this.elmtCellWidth * this.editScale) / this.viewScale;
     const myDecimalPart: number = (myDeltaX / myDragScale) % 1; // o resto da divisão de um número por 1 dá a parte décimal
 
-    console.log(myDraggedElmt);
     if (event.delta.x > 0) {
 
       if (myDecimalPart >= 0) {
@@ -545,6 +548,210 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
 
     // código para fazer 'reset' ao drag... sem isto quando pegassemos duas vezes o mesmo elemento ele ia somar ao drag anterior!
     myDraggedElmt.style.transform = 'none';
+    const source: any = event.source;
+    source._dragRef._passiveTransform = {x: 0, y: 0};
+
+    this.itemMovedEvt.emit(true);
+  }
+
+  public startResizeTaskLeftSide(event: CdkDragStart, item: ITask): void {
+    const myElmt: HTMLElement = event.source.element.nativeElement.parentElement;
+    this._taskInitWidth = myElmt.clientWidth;
+    this._taskInitX = myElmt.getBoundingClientRect().left;
+    this._taskInitMarginLeft = Number(item._detailsStyle['margin-left'].replace('px', ''));
+
+    const myParentElmt: HTMLElement = myElmt.parentElement;
+    const myParentElmtPositionX = myParentElmt.getBoundingClientRect().left;
+
+    this.guideLineVisible = true;
+    this._guideLineInitPosition = myElmt.getBoundingClientRect().left - myParentElmtPositionX;
+    this.guideLinePositionLeft = this._guideLineInitPosition;
+    this._isFirstInc = true;
+  }
+
+  public resizingTaskLeftSide(event: CdkDragMove, item: ITask): void {
+    const myElmt: HTMLElement = event.source.element.nativeElement.parentElement;
+
+    const myDeltaX: number = this._taskInitX - event.pointerPosition.x; // positivo qd se desloca rtl;
+    const myElmtWidth: number = this._taskInitWidth + myDeltaX;
+    const myElmtMarginLeft: number = this._taskInitMarginLeft - myDeltaX;
+    const myDragScale: number = (this.elmtCellWidth * this.editScale) / this.viewScale;
+    const myDecimalPart: number = (myDeltaX / myDragScale) % 1; // o resto da divisão de um número por 1 dá a parte décimal
+
+    if (myElmtWidth > myDragScale) {
+      item._detailsStyle['width'] = myElmtWidth + 'px';
+      item._detailsStyle['margin-left'] = myElmtMarginLeft + 'px';
+
+      if (event.delta.x > 0) {
+
+        if (myDecimalPart >= 0) {
+          if (myDecimalPart >= 0.5 && this._isFirstInc) {
+            this.guideLinePositionLeft += myDragScale;
+            this._isFirstInc = false;
+          } else if (myDecimalPart <= 0.49) {
+            this._isFirstInc = true;
+          }
+        } else {
+          if (myDecimalPart >= -0.49 && this._isFirstInc) {
+            this.guideLinePositionLeft += myDragScale;
+            this._isFirstInc = false;
+          } else if (myDecimalPart <= -0.5) {
+            this._isFirstInc = true;
+          }
+        }
+      } else if (event.delta.x < 0) {
+        if (myDecimalPart >= 0) {
+          if (myDecimalPart <= 0.49 && this._isFirstInc) {
+            this.guideLinePositionLeft -= myDragScale;
+            this._isFirstInc = false;
+          } else if (myDecimalPart >= 0.5) {
+            this._isFirstInc = true;
+          }
+        } else {
+          if (myDecimalPart <= -0.5 && this._isFirstInc) {
+            this.guideLinePositionLeft -= myDragScale;
+            this._isFirstInc = false;
+          } else if (myDecimalPart >= -0.49) {
+            this._isFirstInc = true;
+          }
+        }
+      }
+    }
+
+    // código para fazer 'reset' ao drag...
+    const mySource: any = event.source;
+    mySource.element.nativeElement.style.transform = 'none';
+    mySource._dragRef._passiveTransform = {x: 0, y: 0};
+
+    const myParentElmt: HTMLElement = myElmt.parentElement;
+    const myParentElmtPositionX = myParentElmt.getBoundingClientRect().left;
+    const myFinalPositionX: number = this.guideLinePositionLeft + myParentElmtPositionX;
+    const myFinalDeltaX: number = myFinalPositionX - this._taskInitX;
+
+    // calcular através dos px movidos a diferença em minutos da posição original
+    const myDateDiff = (myFinalDeltaX) * (this.viewScale) / this.elmtCellWidth;
+
+    this.guideLineTimeInfo = moment(item.date.from).add(myDateDiff, 'minutes').toDate();
+  }
+
+  public endResizeTaskLeftSide(event: CdkDragEnd, item: IProject | ITask): void {
+    const myElmt: HTMLElement = event.source.element.nativeElement.parentElement;
+
+    const myParentElmt: HTMLElement = myElmt.parentElement;
+    const myParentElmtPositionX = myParentElmt.getBoundingClientRect().left;
+
+    const myFinalPositionX: number = this.guideLinePositionLeft + myParentElmtPositionX;
+    const myDeltaX: number = myFinalPositionX - this._taskInitX;
+
+    // calcular através dos px movidos a diferença em minutos da posição original
+    const myDateDiff = (myDeltaX) * (this.viewScale) / this.elmtCellWidth;
+
+    item.date.from = moment(item.date.from).add(myDateDiff, 'minutes').toDate();
+
+    this.guideLineVisible = false;
+
+    // código para fazer 'reset' ao drag... sem isto quando pegassemos duas vezes o mesmo elemento ele ia somar ao drag anterior!
+    myElmt.style.transform = 'none';
+    const source: any = event.source;
+    source._dragRef._passiveTransform = {x: 0, y: 0};
+
+    this.itemMovedEvt.emit(true);
+  }
+
+  public startResizeTaskRightSide(event: CdkDragStart, item: ITask): void {
+    const myElmt: HTMLElement = event.source.element.nativeElement.parentElement;
+    this._taskInitWidth = myElmt.clientWidth;
+    this._taskInitX = myElmt.getBoundingClientRect().left + this._taskInitWidth;
+
+    const myParentElmt: HTMLElement = myElmt.parentElement;
+    const myParentElmtPositionX = myParentElmt.getBoundingClientRect().left;
+
+    this.guideLineVisible = true;
+    this._guideLineInitPosition = (myElmt.getBoundingClientRect().left + this._taskInitWidth) - myParentElmtPositionX;
+    this.guideLinePositionLeft = this._guideLineInitPosition;
+    this._isFirstInc = true;
+  }
+
+  public resizingTaskRightSide(event: CdkDragMove, item: ITask): void {
+    const myElmt: HTMLElement = event.source.element.nativeElement.parentElement;
+
+    const myDeltaX: number = event.pointerPosition.x - this._taskInitX; // positivo qd se desloca ltr;
+    const myElmtWidth: number = this._taskInitWidth + myDeltaX;
+
+    item._detailsStyle['width'] = myElmtWidth + 'px';
+
+    // código para fazer 'reset' ao drag... sem isto quando pegassemos duas vezes o mesmo elemento ele ia somar ao drag anterior!
+    const mySource: any = event.source;
+    mySource.element.nativeElement.style.transform = 'none';
+    mySource._dragRef._passiveTransform = {x: 0, y: 0};
+
+    const myDragScale: number = (this.elmtCellWidth * this.editScale) / this.viewScale;
+    const myDecimalPart: number = (myDeltaX / myDragScale) % 1; // o resto da divisão de um número por 1 dá a parte décimal
+
+    if (event.delta.x > 0) {
+
+      if (myDecimalPart >= 0) {
+        if (myDecimalPart >= 0.5 && this._isFirstInc) {
+          this.guideLinePositionLeft += myDragScale;
+          this._isFirstInc = false;
+        } else if (myDecimalPart <= 0.49) {
+          this._isFirstInc = true;
+        }
+      } else {
+        if (myDecimalPart >= -0.49 && this._isFirstInc) {
+          this.guideLinePositionLeft += myDragScale;
+          this._isFirstInc = false;
+        } else if (myDecimalPart <= -0.5) {
+          this._isFirstInc = true;
+        }
+      }
+    } else if (event.delta.x < 0) {
+      if (myDecimalPart >= 0) {
+        if (myDecimalPart <= 0.49 && this._isFirstInc) {
+          this.guideLinePositionLeft -= myDragScale;
+          this._isFirstInc = false;
+        } else if (myDecimalPart >= 0.5) {
+          this._isFirstInc = true;
+        }
+      } else {
+        if (myDecimalPart <= -0.5 && this._isFirstInc) {
+          this.guideLinePositionLeft -= myDragScale;
+          this._isFirstInc = false;
+        } else if (myDecimalPart >= -0.49) {
+          this._isFirstInc = true;
+        }
+      }
+    }
+
+    const myParentElmt: HTMLElement = myElmt.parentElement;
+    const myParentElmtPositionX = myParentElmt.getBoundingClientRect().left;
+    const myFinalPositionX: number = this.guideLinePositionLeft + myParentElmtPositionX;
+    const myFinalDeltaX: number = myFinalPositionX - this._taskInitX;
+
+    // calcular através dos px movidos a diferença em minutos da posição original
+    const myDateDiff = (myFinalDeltaX) * (this.viewScale) / this.elmtCellWidth;
+
+    this.guideLineTimeInfo = moment(item.date.to).add(myDateDiff, 'minutes').toDate();
+  }
+
+  public endResizeTaskRightSide(event: CdkDragEnd, item: IProject | ITask): void {
+    const myElmt: HTMLElement = event.source.element.nativeElement.parentElement;
+
+    const myParentElmt: HTMLElement = myElmt.parentElement;
+    const myParentElmtPositionX = myParentElmt.getBoundingClientRect().left;
+
+    const myFinalPositionX: number = this.guideLinePositionLeft + myParentElmtPositionX;
+    const myDeltaX: number = myFinalPositionX - this._taskInitX;
+
+    // calcular através dos px movidos a diferença em minutos da posição original
+    const myDateDiff = (myDeltaX) * (this.viewScale) / this.elmtCellWidth;
+
+    item.date.to = moment(item.date.to).add(myDateDiff, 'minutes').toDate();
+
+    this.guideLineVisible = false;
+
+    // código para fazer 'reset' ao drag... sem isto quando pegassemos duas vezes o mesmo elemento ele ia somar ao drag anterior!
+    myElmt.style.transform = 'none';
     const source: any = event.source;
     source._dragRef._passiveTransform = {x: 0, y: 0};
 

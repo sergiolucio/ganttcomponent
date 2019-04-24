@@ -70,6 +70,10 @@
               margin-top: 0.5rem;
             }
 
+            .project-cell {
+              overflow: hidden;
+            }
+
             .project-cell:hover {
               cursor: pointer;
             }
