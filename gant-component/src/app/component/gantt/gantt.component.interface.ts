@@ -8,44 +8,35 @@ export interface IInputOptions {
   editScale: number;
 }
 
-export interface IProjects {
-  [id: string]: IProject;
+export interface IItems {
+  [id: string]: IItem;
 }
 
-export interface IProject extends ITask {
-  _hasTasks?: boolean;
-  tasks?: ITasks;
-  _tasksKeys?: Array<string>;
-  _hasChildren?: boolean;
-  projectChildren?: IProjects;
-  _projectChildrenKeys?: Array<string>;
-  _projectItems?: number;
-}
-
-export interface ITasks {
-  [id: string]: ITask;
-}
-
-export interface ITask {
+export interface IItem {
   name: string;
   color: string;
   date: IDate;
   progress?: number;
-  dependencies?: IDependencies;
+  _hasNextItems?: boolean;
+  nextItems?: Array<INode>;
   genealogyDegree: number;
   collapsed: boolean;
   _descriptionStyle?: IStyle;
   _detailsStyle?: IStyle;
+  _hasChildren?: boolean;
+  itemsChildren?: IItems;
+  _itemsChildrenKeys?: Array<string>;
+  _itemsNumber?: number;
+}
+
+export interface INode {
+  next: IItem;
+  _nextArrowStyle?: IStyle;
 }
 
 export interface IDate {
   from: Date;
   to: Date;
-}
-
-export interface IDependencies {
-  from?: ITask;
-  to?: ITask;
 }
 
 interface IStyle {

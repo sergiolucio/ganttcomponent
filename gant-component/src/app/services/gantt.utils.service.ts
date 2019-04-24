@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {IInputOptions, IProject, IProjects, ITask} from '../component/gantt/gantt.component.interface';
+import {IInputOptions, IItem, IItems} from '../component/gantt/gantt.component.interface';
 import * as moment from 'moment';
 
 @Injectable({
@@ -10,18 +10,18 @@ export class GanttUtilsService {
   constructor() {
   }
 
-  public generateProjects(): IProjects {
+  public generateProjects(): IItems {
 
     const myColors: Array<string> = ['orange', 'blue', 'red', 'green'];
 
-    let projectData: IProjects;
+    let projectData: IItems;
     projectData = {};
 
     for (let j = 0; j < 120; j++) {
 
       for (let i = 1; i < Math.floor(Math.random() * 10) + 1; i++) {
 
-        let project: IProject;
+        let project: IItem;
         project = {
           name: `Project ${j}${i} `,
           color: myColors[Math.floor(Math.random() * 4)],
@@ -31,12 +31,12 @@ export class GanttUtilsService {
           },
           genealogyDegree: 1,
           collapsed: false,
-          tasks: {},
-          projectChildren: {}
+          itemsChildren: {},
+          nextItems: []
         };
 
         for (let k = 1; k < 3; k++) {
-          let task: ITask;
+          let task: IItem;
           task = {
             name: `Task ${j}${i}${k}`,
             color: '#ff9a2e',
@@ -45,15 +45,15 @@ export class GanttUtilsService {
               from: moment('05-04-2019', 'DD-MM-YYYY').toDate(),
               to: moment('06-04-2019', 'DD-MM-YYYY').toDate()
             },
-            dependencies: {},
             genealogyDegree: 2,
             collapsed: false
           };
 
-          project.tasks[`Task${j}${i}${k}`] = task;
+          project.itemsChildren[`Task${j}${i}${k}`] = task;
+          project.nextItems.push({next: task});
 
           for (let l = 1; l < 3; l++) {
-            let projectChild: IProject;
+            let projectChild: IItem;
             projectChild = {
               name: `Project 1º Filho ${j}${i}${k}${l}`,
               color: '#5eff2e',
@@ -63,13 +63,12 @@ export class GanttUtilsService {
               },
               genealogyDegree: 2,
               collapsed: false,
-              tasks: {},
-              projectChildren: {}
+              itemsChildren: {}
             };
 
-            project.projectChildren[`Project1Filho${j}${i}${k}${l}`] = projectChild;
+            project.itemsChildren[`Project1Filho${j}${i}${k}${l}`] = projectChild;
 
-            let projectChildTwo: IProject;
+            let projectChildTwo: IItem;
             projectChildTwo = {
               name: `Project 2º Filho ${j}${i}${k}`,
               color: '#5eff2e',
@@ -79,12 +78,11 @@ export class GanttUtilsService {
               },
               genealogyDegree: 3,
               collapsed: false,
-              tasks: {},
-              projectChildren: {}
+              itemsChildren: {}
             };
 
             if (k % 2 === 0) {
-              project.projectChildren[`Project1Filho${j}${i}${k}${l}`].projectChildren[`Project2Filho${j}${i}${k}`] = projectChildTwo;
+              project.itemsChildren[`Project1Filho${j}${i}${k}${l}`].itemsChildren[`Project2Filho${j}${i}${k}`] = projectChildTwo;
             }
           }
         }

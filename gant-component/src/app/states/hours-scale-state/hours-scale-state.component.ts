@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {IInputOptions, IProjects} from '../../component/gantt/gantt.component.interface';
+import {IInputOptions, IItems} from '../../component/gantt/gantt.component.interface';
 import {GanttUtilsService} from '../../services/gantt.utils.service';
 
 @Component({
@@ -10,7 +10,7 @@ import {GanttUtilsService} from '../../services/gantt.utils.service';
 export class HoursScaleStateComponent implements OnInit {
 
   public inputOptions: IInputOptions;
-  public projects: IProjects;
+  public projects: IItems;
   public inputPanelOptionsActive: boolean;
   public timePickerActive: boolean;
   public datePickerActive: boolean;

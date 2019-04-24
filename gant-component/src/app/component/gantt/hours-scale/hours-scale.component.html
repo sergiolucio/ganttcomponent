@@ -23,8 +23,8 @@
         </div>
 
         <div class="background-tasks-content" [style.margin-top.px]="freeSpaceTop">
-          <ng-template ngFor let-projKey [ngForOf]="projectsKeysDatasource">
-            <ng-container *ngTemplateOutlet="projectTemplate; context: {item: projects[projKey]}"></ng-container>
+          <ng-template ngFor let-itemKey [ngForOf]="itemsKeysDatasource">
+            <ng-container *ngTemplateOutlet="itemTemplate; context: {item: items[itemKey]}"></ng-container>
           </ng-template>
         </div>
       </div>
@@ -39,9 +39,9 @@
 
 <!--==================================================================-->
 
-<ng-template #projectTemplate let-item="item">
+<ng-template #itemTemplate let-item="item">
 
-  <div class="project-resizable"
+  <div class="item-resizable"
        cdkDrag
        cdkDragLockAxis="x"
        (cdkDragStarted)="startDrag($event)"
@@ -74,52 +74,23 @@
 
     <div class="right-circle"></div>
 
-  </div>
-
-  <ng-template [ngIf]="item._hasTasks && !item.collapsed">
-    <ng-template ngFor let-taskKey [ngForOf]="item._tasksKeys">
-      <ng-container *ngTemplateOutlet="taskTemplate; context: {task: item.tasks[taskKey]}"></ng-container>
+    <ng-template [ngIf]="item._hasNextItems">
+      <ng-template ngFor let-nextItem [ngForOf]="item.nextItems | keyvalue">
+        <svg class="arrow-next-item" width="400" height="400" [style.left]="">
+          <path d="M0 0 H200" fill="none" stroke-width="3" stroke="red"></path>
+        </svg>
+      </ng-template>
     </ng-template>
-  </ng-template>
+
+  </div>
 
   <ng-template [ngIf]="item._hasChildren && !item.collapsed">
-    <ng-template ngFor let-projKey [ngForOf]="item._projectChildrenKeys">
-      <ng-container *ngTemplateOutlet="projectTemplate; context: {item: item.projectChildren[projKey]}"></ng-container>
+
+    <ng-template ngFor let-itemKey [ngForOf]="item._itemsChildrenKeys">
+      <ng-container *ngTemplateOutlet="itemTemplate; context: {item: item.itemsChildren[itemKey]}"></ng-container>
     </ng-template>
+
   </ng-template>
 </ng-template>
 
-<ng-template #taskTemplate let-task="task">
-
-  <div class="project-resizable"
-       cdkDrag
-       cdkDragLockAxis="x"
-       (cdkDragStarted)="startDrag($event)"
-       (cdkDragMoved)="dragMoved($event, task)"
-       (cdkDragEnded)="itemDragged($event, task)"
-       [ngStyle]="task._detailsStyle"
-       [style.left.px]="-freeSpaceLeft"
-  >
-    <div class="left-circle"></div>
-
-    <div class="left-limit"
-         cdkDrag
-         cdkDragLockAxis="x"
-         (cdkDragStarted)="startResizeTaskLeftSide($event, task)"
-         (cdkDragMoved)="resizingTaskLeftSide($event, task)"
-         (cdkDragEnded)="endResizeTaskLeftSide($event, task)"></div>
-
-    <div class="project-cell" [style.width]="task._detailsStyle['width']" cdkDragHandle>{{task.name}}</div>
-
-    <div class="right-limit"
-         cdkDrag
-         cdkDragLockAxis="x"
-         (cdkDragStarted)="startResizeTaskRightSide($event, task)"
-         (cdkDragMoved)="resizingTaskRightSide($event, task)"
-         (cdkDragEnded)="endResizeTaskRightSide($event, task)"></div>
-
-    <div class="right-circle"></div>
-
-  </div>
-</ng-template>
 

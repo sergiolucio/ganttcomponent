@@ -13,7 +13,7 @@ import {
   ViewEncapsulation
 } from '@angular/core';
 import * as moment from 'moment';
-import {IProject, IProjects, ITask} from '../gantt.component.interface';
+import {IItems, IItem} from '../gantt.component.interface';
 import {Observable, Subscription} from 'rxjs';
 import {CdkDragEnd, CdkDragMove, CdkDragStart} from '@angular/cdk/drag-drop';
 
@@ -27,11 +27,11 @@ import {CdkDragEnd, CdkDragMove, CdkDragStart} from '@angular/cdk/drag-drop';
 export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
 
   // variáveis que armazenam e manipulam os items/projectos recebidos
-  @Input() projectsObservable: Observable<IProjects>;
-  private _projectsSubscription: Subscription;
-  public projects: IProjects;
-  @Input() projectsKeys: Array<string>;
-  public projectsKeysDatasource: Array<string>;
+  @Input() itemsObservable: Observable<IItems>;
+  private _itemsSubscription: Subscription;
+  public items: IItems;
+  @Input() itemsKeys: Array<string>;
+  public itemsKeysDatasource: Array<string>;
   @Input() itemDraggedOrCollapsedEvt: boolean;
 
   // inputs com opções
@@ -95,8 +95,8 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     this.guideLineVisible = false;
     this._resizeTaskStarted = false;
 
-    this._projectsSubscription = this.projectsObservable.subscribe((value: IProjects) => {
-      this.projects = value;
+    this._itemsSubscription = this.itemsObservable.subscribe((value: IItems) => {
+      this.items = value;
     });
 
     // 1 dia = 24h = 1440 min
@@ -208,29 +208,29 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
 
     let myRenderedHeight = 0;
 
-    this.projectsKeysDatasource = [];
+    this.itemsKeysDatasource = [];
 
     let i: number;
     for (i = 0; myRenderedHeight <= myScrollViewPortHeight; i++) {
-      this.projectsKeysDatasource.push(this.projectsKeys[i]);
+      this.itemsKeysDatasource.push(this.itemsKeys[i]);
 
-      if (this.projects[this.projectsKeys[i]].collapsed) {
+      if (this.items[this.itemsKeys[i]].collapsed) {
         myRenderedHeight += 32;
       } else {
-        myRenderedHeight += this.projects[this.projectsKeys[i]]._projectItems * 32;
-        // _projectItems tem o nº total de items por project; 32 é o nº de px por row
+        myRenderedHeight += this.items[this.itemsKeys[i]]._itemsNumber * 32;
+        // _itemsNumber tem o nº total de items por project; 32 é o nº de px por row
       }
     }
 
     this._indexMin = 0;
-    this._indexMax = this.projectsKeysDatasource.length - 1;
+    this._indexMax = this.itemsKeysDatasource.length - 1;
     this.freeSpaceTop = 0;
 
     document.querySelector('.background-tasks-container').scroll(0, 0);
   }
 
   private _refreshVerticalVirtualScroll(): void {
-    this.projectsKeysDatasource = [];
+    this.itemsKeysDatasource = [];
     let myRenderedHeight = 0;
     const myScrollViewPortHeight: number = document.querySelector('.scroll-viewport').clientHeight;
     const myScrollTop: number = document.querySelector('.scroll-viewport').scrollTop;
@@ -239,19 +239,19 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     i = this._indexMin;
 
     do {
-      this.projectsKeysDatasource.push(this.projectsKeys[i]);
+      this.itemsKeysDatasource.push(this.itemsKeys[i]);
 
-      if (this.projects[this.projectsKeys[i]].collapsed) {
+      if (this.items[this.itemsKeys[i]].collapsed) {
         myRenderedHeight += 32;
       } else {
-        myRenderedHeight += this.projects[this.projectsKeys[i]]._projectItems * 32;
-        // _projectItems tem o nº total de items por project; 32 é o nº de px por row
+        myRenderedHeight += this.items[this.itemsKeys[i]]._itemsNumber * 32;
+        // _itemsNumber tem o nº total de items por project; 32 é o nº de px por row
       }
 
       i++;
     } while (myRenderedHeight <= myScrollViewPortHeight + myScrollTop);
 
-    this._indexMax = (this.projectsKeysDatasource.length - 1) + this._indexMin;
+    this._indexMax = (this.itemsKeysDatasource.length - 1) + this._indexMin;
   }
 
   @ViewChild('horizontalScrollViewPort')
@@ -365,14 +365,14 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
 
         let myFirstElmtHeight: number;
         // verificar se o projeto está collapsed
-        if (this.projects[this.projectsKeysDatasource[0]].collapsed) {
+        if (this.items[this.itemsKeysDatasource[0]].collapsed) {
           myFirstElmtHeight = 32; // 32px é a altura de cada row
         } else {
-          myFirstElmtHeight = this.projects[this.projectsKeysDatasource[0]]._projectItems * 32;
+          myFirstElmtHeight = this.items[this.itemsKeysDatasource[0]]._itemsNumber * 32;
         }
 
         if (myFirstElmtHeight + this.freeSpaceTop < myScrollTop) {
-          this.projectsKeysDatasource.shift();
+          this.itemsKeysDatasource.shift();
           this._indexMin++;
           if (this.freeSpaceTop === 0) {
             this.freeSpaceTop += 8;
@@ -382,12 +382,12 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
 
         // 2º preciso de saber se ainda tenho elementos no fundo
         // se já não tiver preciso de renderizar mais
-        // -> verificar se há mais a renderizar (this._indexMax < último elemento de this.projects)
+        // -> verificar se há mais a renderizar (this._indexMax < último elemento de this.items)
         // scrollHeight - scrollTop - scrollViewPortHeight > 0 -> ou mais alguns pixeis de segurança
 
-        if (myScrollHeight - myScrollTop - myScrollViewPortHeight <= 30 && this._indexMax < this.projectsKeys.length - 1) {
+        if (myScrollHeight - myScrollTop - myScrollViewPortHeight <= 30 && this._indexMax < this.itemsKeys.length - 1) {
           this._indexMax++;
-          this.projectsKeysDatasource.push(this.projectsKeys[this._indexMax]);
+          this.itemsKeysDatasource.push(this.itemsKeys[this._indexMax]);
         }
 
       } else {
@@ -399,14 +399,14 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
 
         let myLastElmtHeight: number;
 
-        if (this.projects[this.projectsKeysDatasource[this.projectsKeysDatasource.length - 1]].collapsed) {
+        if (this.items[this.itemsKeysDatasource[this.itemsKeysDatasource.length - 1]].collapsed) {
           myLastElmtHeight = 32;
         } else {
-          myLastElmtHeight = this.projects[this.projectsKeysDatasource[this.projectsKeysDatasource.length - 1]]._projectItems * 32;
+          myLastElmtHeight = this.items[this.itemsKeysDatasource[this.itemsKeysDatasource.length - 1]]._itemsNumber * 32;
         }
 
         if (myScrollHeight - myScrollTop - myScrollViewPortHeight > myLastElmtHeight) {
-          this.projectsKeysDatasource.pop();
+          this.itemsKeysDatasource.pop();
           this._indexMax--;
         }
 
@@ -418,13 +418,13 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
         if (myScrollTop <= this.freeSpaceTop + 30 && this._indexMin > 0) {
 
           this._indexMin--;
-          this.projectsKeysDatasource.unshift(this.projectsKeys[this._indexMin]);
+          this.itemsKeysDatasource.unshift(this.itemsKeys[this._indexMin]);
           let myElmtAdded: number;
 
-          if (this.projects[this.projectsKeysDatasource[0]].collapsed) {
+          if (this.items[this.itemsKeysDatasource[0]].collapsed) {
             myElmtAdded = 32;
           } else {
-            myElmtAdded = this.projects[this.projectsKeysDatasource[0]]._projectItems * 32;
+            myElmtAdded = this.items[this.itemsKeysDatasource[0]]._itemsNumber * 32;
           }
 
           this.freeSpaceTop -= myElmtAdded;
@@ -473,7 +473,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     this._isFirstInc = true;
   }
 
-  public dragMoved(event: CdkDragMove, item: IProject | ITask): void {
+  public dragMoved(event: CdkDragMove, item: IItem): void {
 
     const myDraggedElmt: HTMLElement = event.source.element.nativeElement;
     const myElmtActualPosition: number = myDraggedElmt.getBoundingClientRect().left;
@@ -528,7 +528,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     this.guideLineTimeInfo = moment(item.date.from).add(myDateDiff, 'minutes').toDate();
   }
 
-  public itemDragged(event: CdkDragEnd, item: IProject | ITask): void {
+  public itemDragged(event: CdkDragEnd, item: IItem): void {
     const myDraggedElmt: HTMLElement = event.source.element.nativeElement;
 
     const myParentElmt: HTMLElement = myDraggedElmt.parentElement;
@@ -554,7 +554,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     this.itemMovedEvt.emit(true);
   }
 
-  public startResizeTaskLeftSide(event: CdkDragStart, item: ITask): void {
+  public startResizeTaskLeftSide(event: CdkDragStart, item: IItem): void {
     const myElmt: HTMLElement = event.source.element.nativeElement.parentElement;
     this._taskInitWidth = myElmt.clientWidth;
     this._taskInitX = myElmt.getBoundingClientRect().left;
@@ -569,7 +569,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     this._isFirstInc = true;
   }
 
-  public resizingTaskLeftSide(event: CdkDragMove, item: ITask): void {
+  public resizingTaskLeftSide(event: CdkDragMove, item: IItem): void {
     const myElmt: HTMLElement = event.source.element.nativeElement.parentElement;
 
     const myDeltaX: number = this._taskInitX - event.pointerPosition.x; // positivo qd se desloca rtl;
@@ -634,7 +634,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     this.guideLineTimeInfo = moment(item.date.from).add(myDateDiff, 'minutes').toDate();
   }
 
-  public endResizeTaskLeftSide(event: CdkDragEnd, item: IProject | ITask): void {
+  public endResizeTaskLeftSide(event: CdkDragEnd, item: IItem): void {
     const myElmt: HTMLElement = event.source.element.nativeElement.parentElement;
 
     const myParentElmt: HTMLElement = myElmt.parentElement;
@@ -658,7 +658,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     this.itemMovedEvt.emit(true);
   }
 
-  public startResizeTaskRightSide(event: CdkDragStart, item: ITask): void {
+  public startResizeTaskRightSide(event: CdkDragStart, item: IItem): void {
     const myElmt: HTMLElement = event.source.element.nativeElement.parentElement;
     this._taskInitWidth = myElmt.clientWidth;
     this._taskInitX = myElmt.getBoundingClientRect().left + this._taskInitWidth;
@@ -672,7 +672,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     this._isFirstInc = true;
   }
 
-  public resizingTaskRightSide(event: CdkDragMove, item: ITask): void {
+  public resizingTaskRightSide(event: CdkDragMove, item: IItem): void {
     const myElmt: HTMLElement = event.source.element.nativeElement.parentElement;
 
     const myDeltaX: number = event.pointerPosition.x - this._taskInitX; // positivo qd se desloca ltr;
@@ -734,7 +734,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     this.guideLineTimeInfo = moment(item.date.to).add(myDateDiff, 'minutes').toDate();
   }
 
-  public endResizeTaskRightSide(event: CdkDragEnd, item: IProject | ITask): void {
+  public endResizeTaskRightSide(event: CdkDragEnd, item: IItem): void {
     const myElmt: HTMLElement = event.source.element.nativeElement.parentElement;
 
     const myParentElmt: HTMLElement = myElmt.parentElement;

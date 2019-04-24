@@ -59,7 +59,7 @@
 
         .background-tasks-content {
 
-          div.project-resizable {
+          div.item-resizable {
             display: flex;
             position: relative;
             margin-top: 1rem;
@@ -114,6 +114,11 @@
 
             &:hover div.left-circle, &:hover div.right-circle {
               display: block;
+            }
+
+            svg.arrow-next-item {
+              position: absolute;
+              //z-index: -1;
             }
           }
         }

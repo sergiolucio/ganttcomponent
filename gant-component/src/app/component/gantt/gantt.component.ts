@@ -1,5 +1,5 @@
 import {Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
-import {EScaleStates, IInputOptions, IProject, IProjects, ITask} from './gantt.component.interface';
+import {EScaleStates, IInputOptions, IItems, IItem} from './gantt.component.interface';
 import {Observable} from 'rxjs';
 import * as moment from 'moment';
 import {Moment} from 'moment';
@@ -22,9 +22,9 @@ export class GanttComponent implements OnInit, OnChanges {
 
   @Input() scaleState: EScaleStates;
 
-  @Input() projects: IProjects;
-  public projectsKeys: Array<string>;
-  public projectsCounter: number;
+  @Input() items: IItems;
+  public itemsKeys: Array<string>;
+  public itemsCounter: number;
   public itemDraggedOrCollapsedEvt: boolean;
 
   // variáveis de configuração de dimensões do layout
@@ -37,10 +37,9 @@ export class GanttComponent implements OnInit, OnChanges {
   public cellWidth: number;
 
   public scrollPosition: number;
-  private _itemsByProject: number;
+  private _subItemsByItem: number;
 
-  constructor() {
-  }
+  constructor() {}
 
   ngOnInit() {
     const myTasksParent = document.querySelector('div.row.tables-container');
@@ -55,8 +54,8 @@ export class GanttComponent implements OnInit, OnChanges {
       this._inspectInputOptions();
     }
 
-    if (this.projects) {
-      this.initInspectProjects();
+    if (this.items) {
+      this.initInspectItems();
       this._initProjectsKeys();
     }
 
@@ -66,17 +65,17 @@ export class GanttComponent implements OnInit, OnChanges {
       this.scrollPosition = 0;
     }
 
-    console.log(this.projectsCounter);
+    console.log(this.itemsCounter);
   }
 
   ngOnChanges({inputOptions, projects}: SimpleChanges): void {
     if (inputOptions && !inputOptions.isFirstChange()) {
       this._inspectInputOptions();
-      this.initInspectProjects();
+      this.initInspectItems();
     }
 
     if (projects && !projects.isFirstChange()) {
-      this.initInspectProjects();
+      this.initInspectItems();
       this._initProjectsKeys();
     }
   }
@@ -127,74 +126,61 @@ export class GanttComponent implements OnInit, OnChanges {
 
   // ============================================================
 
-  public getProjects(): Observable<IProjects> {
-    return new Observable<IProjects>(observer => {
-      observer.next(this.projects);
+  public getItems(): Observable<IItems> {
+    return new Observable<IItems>(observer => {
+      observer.next(this.items);
     });
   }
 
-  public initInspectProjects(): void {
-    this.projectsCounter = 0;
-    for (const projKey of Object.keys(this.projects)) {
-      this._itemsByProject = 0;
-      this._inspectProjects(this.projects[projKey]);
-      this.projects[projKey]._projectItems = this._itemsByProject;
+  public initInspectItems(): void {
+    this.itemsCounter = 0;
+
+    for (const projKey of Object.keys(this.items)) {
+      this._subItemsByItem = 0;
+      this._inspectItems(this.items[projKey]);
+      this.items[projKey]._itemsNumber = this._subItemsByItem;
+    }
+
+    for (const projKey of Object.keys(this.items)) {
+      this._inspectNextItems(this.items[projKey]);
     }
   }
 
-  private _inspectProjects(project: IProject, mainProjectColor?: string): void {
-    this.projectsCounter++; // contador de items totais
-    this._itemsByProject++; // contador de items por projeto
+  private _inspectItems(item: IItem, mainProjectColor?: string): void {
+    this.itemsCounter++; // contador de items totais
+    this._subItemsByItem++; // contador de items por projeto
 
-    project._hasTasks = project.tasks && Object.keys(project.tasks).length > 0;
-    project._hasChildren = project.projectChildren && Object.keys(project.projectChildren).length > 0;
-    project._descriptionStyle = {};
-    project._descriptionStyle['border-left'] = mainProjectColor ? '3px solid ' + mainProjectColor : '3px solid ' + project.color;
-    project._descriptionStyle['padding-left'] = project.genealogyDegree * 15 + 'px';
-    project._detailsStyle = {};
-    project._detailsStyle['margin-left'] = this._findEventStart(project) + 'px';
-    project._detailsStyle['background-color'] = project.color;
-    if (this._findEventDuration(project) > 0) {
-      project._detailsStyle['width'] = this._findEventDuration(project) + 'px';
-      project._detailsStyle['border'] = '1px dimgray solid';
+    item._hasChildren = !!item.itemsChildren && Object.keys(item.itemsChildren).length > 0;
+    item._hasNextItems = !!item.nextItems && Object.keys(item.nextItems).length > 0;
+    item._descriptionStyle = {};
+    item._descriptionStyle['border-left'] = mainProjectColor ? '3px solid ' + mainProjectColor : '3px solid ' + item.color;
+    item._descriptionStyle['padding-left'] = item.genealogyDegree * 15 + 'px';
+    item._detailsStyle = {};
+    item._detailsStyle['margin-left'] = this._findEventStart(item) + 'px';
+    item._detailsStyle['background-color'] = item.color;
+    if (this._findEventDuration(item) > 0) {
+      item._detailsStyle['width'] = this._findEventDuration(item) + 'px';
+      item._detailsStyle['border'] = '1px dimgray solid';
     } else {
-      project._detailsStyle['width'] = this._findEventDuration(project) + 'px';
+      item._detailsStyle['width'] = this._findEventDuration(item) + 'px';
     }
 
-    if (project._hasTasks) {
-      project._tasksKeys = [];
-
-      for (const taskKey of Object.keys(project.tasks)) {
-        project._tasksKeys.push(taskKey);
-        this.projectsCounter++; // só para imprimir na consola o número de items carregados
-        this._itemsByProject++;
-
-        project.tasks[taskKey]._descriptionStyle = {};
-        project.tasks[taskKey]._descriptionStyle['border-left'] =
-          mainProjectColor ? '3px solid ' + mainProjectColor : '3px solid ' + project.color;
-        project.tasks[taskKey]._descriptionStyle['padding-left'] = project.tasks[taskKey].genealogyDegree * 15 + 'px';
-        project.tasks[taskKey]._detailsStyle = {};
-        project.tasks[taskKey]._detailsStyle['margin-left'] = this._findEventStart(project.tasks[taskKey]) + 'px';
-        project.tasks[taskKey]._detailsStyle['background-color'] = project.tasks[taskKey].color;
-        if (this._findEventDuration(project) > 0) {
-          project.tasks[taskKey]._detailsStyle['width'] = this._findEventDuration(project.tasks[taskKey]) + 'px';
-          project.tasks[taskKey]._detailsStyle['border'] = '1px dimgray solid';
-        } else {
-          project.tasks[taskKey]._detailsStyle['width'] = this._findEventDuration(project.tasks[taskKey]) + 'px';
-        }
-      }
-    }
-
-    if (project._hasChildren) {
-      project._projectChildrenKeys = [];
-      for (const projKey of Object.keys(project.projectChildren)) {
-        project._projectChildrenKeys.push(projKey);
-        this._inspectProjects(project.projectChildren[projKey], mainProjectColor ? mainProjectColor : project.color);
+    if (item._hasChildren) {
+      item._itemsChildrenKeys = [];
+      for (const projKey of Object.keys(item.itemsChildren)) {
+        item._itemsChildrenKeys.push(projKey);
+        this._inspectItems(item.itemsChildren[projKey], mainProjectColor ? mainProjectColor : item.color);
       }
     }
   }
 
-  private _findEventStart(event: IProject | ITask): number {
+  private _inspectNextItems(item: IItem): void {
+    if (item._hasNextItems) {
+
+    }
+  }
+
+  private _findEventStart(event: IItem): number {
 
     const initDate: Moment = moment(this.inputOptions.range.from);
 
@@ -207,7 +193,7 @@ export class GanttComponent implements OnInit, OnChanges {
     return (this.cellWidth * myDateFrom.diff(initDate, 'minutes')) / (this.inputOptions.viewScale);
   }
 
-  private _findEventDuration(event: IProject | ITask): number {
+  private _findEventDuration(event: IItem): number {
 
     let myDateFrom: Moment = moment(event.date.from);
     const myDateTo: Moment = moment(event.date.to);
@@ -231,35 +217,35 @@ export class GanttComponent implements OnInit, OnChanges {
   }
 
   private _initProjectsKeys(): void {
-    this.projectsKeys = [];
+    this.itemsKeys = [];
 
-    for (const projKey of Object.keys(this.projects)) {
-      this.projectsKeys.push(projKey);
+    for (const projKey of Object.keys(this.items)) {
+      this.itemsKeys.push(projKey);
     }
   }
 
   public viewScaleChanged(value: number): void {
     this.inputOptions.viewScale = value;
     this.viewScale = this.inputOptions.viewScale;
-    this.initInspectProjects();
+    this.initInspectItems();
   }
 
   public editScaleChanged(value: number): void {
     this.inputOptions.editScale = value;
     this.editScale = this.inputOptions.editScale;
-    this.initInspectProjects();
+    this.initInspectItems();
   }
 
   public fromRangeChanged(value: Date): void {
     this.inputOptions.range.from = value;
     this.fromRange = this.inputOptions.range.from;
-    this.initInspectProjects();
+    this.initInspectItems();
   }
 
   public toRangeChanged(value: Date): void {
     this.inputOptions.range.to = value;
     this.toRange = this.inputOptions.range.to;
-    this.initInspectProjects();
+    this.initInspectItems();
   }
 
   public scrollPositionChanged(value: number): void {
@@ -271,6 +257,6 @@ export class GanttComponent implements OnInit, OnChanges {
   }
 
   public itemMovedEvt(): void {
-    this.initInspectProjects();
+    this.initInspectItems();
   }
 }

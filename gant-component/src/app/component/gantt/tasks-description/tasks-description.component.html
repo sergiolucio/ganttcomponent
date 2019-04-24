@@ -14,14 +14,14 @@
   <div class="row header bg-light">
   </div>
 
-  <div cdkDropList (cdkDropListDropped)="dropInside($event)" [cdkDropListData]="projectsKeys">
+  <div cdkDropList (cdkDropListDropped)="dropInside($event)" [cdkDropListData]="itemsKeys">
 
     <div class="scroll-viewport" #scrollViewPort>
 
       <div class="scroll-viewport-content" [style.margin-top.px]="freeSpaceTop">
-        <div *ngFor="let projectKey of projectsKeysDatasource" cdkDrag [cdkDragData]="projectKey">
+        <div *ngFor="let itemKey of itemsKeysDatasource" cdkDrag [cdkDragData]="itemKey">
 
-          <ng-container *ngTemplateOutlet="templateProject; context: {project: projects[projectKey]}"></ng-container>
+          <ng-container *ngTemplateOutlet="templateItem; context: {item: items[itemKey]}"></ng-container>
 
         </div>
       </div>
@@ -35,77 +35,47 @@
 
 <!-- templates de função recursiva para percorrer o objeto até ao fim (profundidade desconhecida) -->
 
-<ng-template #templateProject let-project="project">
+<ng-template #templateItem let-item="item">
 
   <div class="row body">
     <div class="task-name"
-         *ngIf="project._hasChildren || project._hasTasks"
-         [ngStyle]="project._descriptionStyle">
+         *ngIf="item._hasChildren"
+         [ngStyle]="item._descriptionStyle">
 
       <i class="fa fa-chevron-up" aria-hidden="true"
-         (click)="toggleCollapseProject(project)" *ngIf="!project.collapsed"></i>
+         (click)="toggleCollapseProject(item)" *ngIf="!item.collapsed"></i>
       <i class="fa fa-chevron-down" aria-hidden="true"
-         (click)="toggleCollapseProject(project)" *ngIf="project.collapsed"></i> {{project.name}}
+         (click)="toggleCollapseProject(item)" *ngIf="item.collapsed"></i> {{item.name}}
 
     </div>
 
     <div class="task-name"
-         *ngIf="!(project._hasChildren) && !project._hasTasks"
-         [ngStyle]="project._descriptionStyle">
-      <i class="fa fa-minus" aria-hidden="true"></i> {{project.name}}
+         *ngIf="!(item._hasChildren)"
+         [ngStyle]="item._descriptionStyle">
+      <i class="fa fa-minus" aria-hidden="true"></i> {{item.name}}
     </div>
 
     <div class="task-from-date">
 
-      <ng-container *ngTemplateOutlet="fromCellTemplate; context: {item: project}"></ng-container>
+      <ng-container *ngTemplateOutlet="fromCellTemplate; context: {item: item}"></ng-container>
 
     </div>
 
     <div class="task-to-date">
 
-      <ng-container *ngTemplateOutlet="toCellTemplate; context: {item: project}"></ng-container>
+      <ng-container *ngTemplateOutlet="toCellTemplate; context: {item: item}"></ng-container>
 
     </div>
   </div>
 
-  <ng-template [ngIf]="project._hasTasks && !project.collapsed">
-    <div cdkDropList (cdkDropListDropped)="dropInside($event)" [cdkDropListData]="project._tasksKeys">
-      <div *ngFor="let taskKey of project._tasksKeys" cdkDrag [cdkDragData]="taskKey">
+  <ng-template [ngIf]="item._hasChildren && !item.collapsed">
+    <div cdkDropList (cdkDropListDropped)="dropInside($event)" [cdkDropListData]="item._itemsChildrenKeys">
+      <div *ngFor="let projKey of item._itemsChildrenKeys" cdkDrag [cdkDragData]="projKey">
         <ng-container
-          *ngTemplateOutlet="templateTask; context: { task: project.tasks[taskKey] }"></ng-container>
+          *ngTemplateOutlet="templateItem; context: { item: item.itemsChildren[projKey] }"></ng-container>
       </div>
     </div>
   </ng-template>
-
-  <ng-template [ngIf]="project._hasChildren && !project.collapsed">
-    <div cdkDropList (cdkDropListDropped)="dropInside($event)" [cdkDropListData]="project._projectChildrenKeys">
-      <div *ngFor="let projKey of project._projectChildrenKeys" cdkDrag [cdkDragData]="projKey">
-        <ng-container
-          *ngTemplateOutlet="templateProject; context: { project: project.projectChildren[projKey] }"></ng-container>
-      </div>
-    </div>
-  </ng-template>
-
-</ng-template>
-
-
-<ng-template #templateTask let-task="task" let-index="index">
-
-  <div class="row body">
-    <div class="task-name"
-         [ngStyle]="task._descriptionStyle">
-      {{task.name}}
-    </div>
-    <div class="task-from-date">
-
-      <ng-container *ngTemplateOutlet="fromCellTemplate; context: {item: task}"></ng-container>
-
-    </div>
-
-    <div class="task-to-date">
-      <ng-container *ngTemplateOutlet="toCellTemplate; context: {item: task}"></ng-container>
-    </div>
-  </div>
 
 </ng-template>
 

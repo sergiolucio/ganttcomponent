@@ -26,11 +26,11 @@
             (itemDraggedOrCollapsedEvt)="itemDraggedOrCollapsedEvtFired($event)"
             [scrollPosition]="scrollPosition"
             (scrollPositionChange)="scrollPositionChanged($event)"
-            [projectsObservable]="getProjects()"
-            [(projectsKeys)]="projectsKeys"
+            [projectsObservable]="getItems()"
+            [(itemsKeys)]="itemsKeys"
             [datePickerActive]="datePickerActive"
             [timePickerActive]="timePickerActive"
-            (updateProjects)="initInspectProjects()"></app-tasks-description>
+            (updateItems)="initInspectItems()"></app-tasks-description>
 
         </div>
 
@@ -56,8 +56,8 @@
                 [horizontalScrollContainerWidth]="tasksWidth"
                 [elmtCellWidth]="cellWidth"
                 (itemMovedEvt)="itemMovedEvt()"
-                [projectsObservable]="getProjects()"
-                [projectsKeys]="projectsKeys"
+                [itemsObservable]="getItems()"
+                [itemsKeys]="itemsKeys"
                 [viewScale]="viewScale"
                 (viewScaleChange)="viewScaleChanged($event)"
                 [editScale]="editScale"
@@ -66,7 +66,6 @@
                 (fromRangeChange)="fromRangeChanged($event)"
                 [toRange]="toRange"
                 (toRangeChange)="toRangeChanged($event)"></app-hours-scale>
-
             </div>
 
           </div>

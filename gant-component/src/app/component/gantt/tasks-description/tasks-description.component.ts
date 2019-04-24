@@ -11,7 +11,7 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import {IProject, IProjects, ITask, ITasks} from '../gantt.component.interface';
+import {IItems, IItem} from '../gantt.component.interface';
 import {Observable, Subscription} from 'rxjs';
 import {CdkDragDrop, moveItemInArray} from '@angular/cdk/drag-drop';
 import * as moment from 'moment';
@@ -25,12 +25,12 @@ import {Moment} from 'moment';
 })
 export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
 
-  @Input() projectsObservable: Observable<IProjects>;
+  @Input() projectsObservable: Observable<IItems>;
   private _subscription: Subscription;
-  public projects: IProjects;
-  @Input() projectsKeys: Array<string>;
-  @Output() projectsKeysChange: EventEmitter<Array<string>>;
-  public projectsKeysDatasource: Array<string>;
+  public items: IItems;
+  @Input() itemsKeys: Array<string>;
+  @Output() itemsKeysChange: EventEmitter<Array<string>>;
+  public itemsKeysDatasource: Array<string>;
   @Output() itemDraggedOrCollapsedEvt: EventEmitter<boolean>;
   private _itemDraggedOrCollapsedEvt: boolean;
 
@@ -44,7 +44,7 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
   private _indexMin: number; // histórico do index dos items adicionados quando o scroll diminui
 
   // Output que informa que é preciso atualizar a lista de projectos - ex. qd alteram as suas horas e data
-  @Output() updateProjects: EventEmitter<boolean>;
+  @Output() updateItems: EventEmitter<boolean>;
 
   @Input() datePickerActive: boolean;
   @Input() timePickerActive: boolean;
@@ -52,14 +52,14 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
   constructor() {
     this.scrollPositionChange = new EventEmitter<number>();
     this.itemDraggedOrCollapsedEvt = new EventEmitter<boolean>();
-    this.updateProjects = new EventEmitter<boolean>();
-    this.projectsKeysChange = new EventEmitter<Array<string>>();
+    this.updateItems = new EventEmitter<boolean>();
+    this.itemsKeysChange = new EventEmitter<Array<string>>();
   }
 
   ngOnInit() {
 
-    this._subscription = this.projectsObservable.subscribe((value: IProjects) => {
-      this.projects = value;
+    this._subscription = this.projectsObservable.subscribe((value: IItems) => {
+      this.items = value;
     });
 
     this._itemDraggedOrCollapsedEvt = false;
@@ -80,7 +80,7 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
     this._dettachScrollEvent();
   }
 
-  public toggleCollapseProject(projectClicked: IProject): void {
+  public toggleCollapseProject(projectClicked: IItem): void {
     projectClicked.collapsed = !projectClicked.collapsed;
     this._refreshVirtualScroll();
     this._itemDraggedOrCollapsedEvt = !this._itemDraggedOrCollapsedEvt;
@@ -141,26 +141,26 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
 
         let myFirstElmtHeight: number;
         // verificar se o projeto está collapsed
-        if (this.projects[this.projectsKeysDatasource[0]].collapsed) {
+        if (this.items[this.itemsKeysDatasource[0]].collapsed) {
           myFirstElmtHeight = 32; // 32px é a altura de cada row
         } else {
-          myFirstElmtHeight = this.projects[this.projectsKeysDatasource[0]]._projectItems * 32;
+          myFirstElmtHeight = this.items[this.itemsKeysDatasource[0]]._itemsNumber * 32;
         }
 
         if (myFirstElmtHeight + this.freeSpaceTop < myScrollTop) {
-          this.projectsKeysDatasource.shift();
+          this.itemsKeysDatasource.shift();
           this._indexMin++;
           this.freeSpaceTop += myFirstElmtHeight;
         }
 
         // 2º preciso de saber se ainda tenho elementos no fundo
         // se já não tiver preciso de renderizar mais
-        // -> verificar se há mais a renderizar (this._indexMax < último elemento de this.projects)
+        // -> verificar se há mais a renderizar (this._indexMax < último elemento de this.items)
         // scrollHeight - scrollTop - scrollViewPortHeight > 0 -> ou mais alguns pixeis de segurança
 
-        if (myScrollHeight - myScrollTop - myScrollViewPortHeight <= 30 && this._indexMax < this.projectsKeys.length - 1) {
+        if (myScrollHeight - myScrollTop - myScrollViewPortHeight <= 30 && this._indexMax < this.itemsKeys.length - 1) {
           this._indexMax++;
-          this.projectsKeysDatasource.push(this.projectsKeys[this._indexMax]);
+          this.itemsKeysDatasource.push(this.itemsKeys[this._indexMax]);
         }
 
       } else {
@@ -172,14 +172,14 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
 
         let myLastElmtHeight: number;
 
-        if (this.projects[this.projectsKeysDatasource[this.projectsKeysDatasource.length - 1]].collapsed) {
+        if (this.items[this.itemsKeysDatasource[this.itemsKeysDatasource.length - 1]].collapsed) {
           myLastElmtHeight = 32;
         } else {
-          myLastElmtHeight = this.projects[this.projectsKeysDatasource[this.projectsKeysDatasource.length - 1]]._projectItems * 32;
+          myLastElmtHeight = this.items[this.itemsKeysDatasource[this.itemsKeysDatasource.length - 1]]._itemsNumber * 32;
         }
 
         if (myScrollHeight - myScrollTop - myScrollViewPortHeight > myLastElmtHeight) {
-          this.projectsKeysDatasource.pop();
+          this.itemsKeysDatasource.pop();
           this._indexMax--;
         }
 
@@ -191,13 +191,13 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
         if (myScrollTop <= this.freeSpaceTop + 30 && this._indexMin > 0) {
 
           this._indexMin--;
-          this.projectsKeysDatasource.unshift(this.projectsKeys[this._indexMin]);
+          this.itemsKeysDatasource.unshift(this.itemsKeys[this._indexMin]);
           let myElmtAdded: number;
 
-          if (this.projects[this.projectsKeysDatasource[0]].collapsed) {
+          if (this.items[this.itemsKeysDatasource[0]].collapsed) {
             myElmtAdded = 32;
           } else {
-            myElmtAdded = this.projects[this.projectsKeysDatasource[0]]._projectItems * 32;
+            myElmtAdded = this.items[this.itemsKeysDatasource[0]]._itemsNumber * 32;
           }
 
           this.freeSpaceTop -= myElmtAdded;
@@ -215,29 +215,29 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
 
     let myRenderedHeight = 0;
 
-    this.projectsKeysDatasource = [];
+    this.itemsKeysDatasource = [];
 
     let i: number;
     for (i = 0; myRenderedHeight <= myScrollViewPortHeight; i++) {
-      this.projectsKeysDatasource.push(this.projectsKeys[i]);
+      this.itemsKeysDatasource.push(this.itemsKeys[i]);
 
-      if (this.projects[this.projectsKeys[i]].collapsed) {
+      if (this.items[this.itemsKeys[i]].collapsed) {
         myRenderedHeight += 32;
       } else {
-        myRenderedHeight += this.projects[this.projectsKeys[i]]._projectItems * 32;
-        // _projectItems tem o nº total de items por project; 32 é o nº de px por row
+        myRenderedHeight += this.items[this.itemsKeys[i]]._itemsNumber * 32;
+        // _itemsNumber tem o nº total de items por project; 32 é o nº de px por row
       }
     }
 
     this._indexMin = 0;
-    this._indexMax = this.projectsKeysDatasource.length - 1;
+    this._indexMax = this.itemsKeysDatasource.length - 1;
     this.freeSpaceTop = 0;
 
     document.querySelector('.scroll-viewport').scroll(0, 0);
   }
 
   private _refreshVirtualScroll(): void {
-    this.projectsKeysDatasource = [];
+    this.itemsKeysDatasource = [];
     let myRenderedHeight = 0;
     const myScrollViewPortHeight: number = document.querySelector('.scroll-viewport').clientHeight;
     const myScrollTop: number = document.querySelector('.scroll-viewport').scrollTop;
@@ -246,48 +246,48 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
     i = this._indexMin;
 
     do {
-      this.projectsKeysDatasource.push(this.projectsKeys[i]);
+      this.itemsKeysDatasource.push(this.itemsKeys[i]);
 
-      if (this.projects[this.projectsKeys[i]].collapsed) {
+      if (this.items[this.itemsKeys[i]].collapsed) {
         myRenderedHeight += 32;
       } else {
-        myRenderedHeight += this.projects[this.projectsKeys[i]]._projectItems * 32;
-        // _projectItems tem o nº total de items por project; 32 é o nº de px por row
+        myRenderedHeight += this.items[this.itemsKeys[i]]._itemsNumber * 32;
+        // _itemsNumber tem o nº total de items por project; 32 é o nº de px por row
       }
 
       i++;
     } while (myRenderedHeight <= myScrollViewPortHeight + myScrollTop);
 
-    this._indexMax = (this.projectsKeysDatasource.length - 1) + this._indexMin;
+    this._indexMax = (this.itemsKeysDatasource.length - 1) + this._indexMin;
   }
 
-  public fromDateChanged(event: any, item: ITask): void {
+  public fromDateChanged(event: any, item: IItem): void {
     let myDate: Moment = moment(event.value);
     myDate = myDate.hours(moment(item.date.from).hours()).minutes(moment(item.date.from).minutes());
     item.date.from = myDate.toDate();
 
-    this.updateProjects.emit();
+    this.updateItems.emit();
   }
 
-  public toDateChanged(event: any, item: ITask): void {
+  public toDateChanged(event: any, item: IItem): void {
     let myDate: Moment = moment(event.value);
     myDate = myDate.hours(moment(item.date.to).hours()).minutes(moment(item.date.to).minutes());
     item.date.to = myDate.toDate();
 
-    this.updateProjects.emit();
+    this.updateItems.emit();
   }
 
-  public fromTimeChanged(event: any, item: ITask): void {
+  public fromTimeChanged(event: any, item: IItem): void {
     const myDate: Moment = moment(event);
     item.date.from = moment(item.date.from).hours(myDate.hours()).minutes(myDate.minutes()).toDate();
 
-    this.updateProjects.emit();
+    this.updateItems.emit();
   }
 
-  public toTimeChanged(event: any, item: IProject | ITask): void {
+  public toTimeChanged(event: any, item: IItem): void {
     const myDate: Moment = moment(event);
     item.date.to = moment(item.date.to).hours(myDate.hours()).minutes(myDate.minutes()).toDate();
 
-    this.updateProjects.emit();
+    this.updateItems.emit();
   }
 }
