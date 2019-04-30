@@ -13,9 +13,10 @@ import {
   ViewEncapsulation
 } from '@angular/core';
 import * as moment from 'moment';
-import {IItems, IItem} from '../gantt.component.interface';
+import {IItem, IItems, ILink} from '../gantt.component.interface';
 import {Observable, Subscription} from 'rxjs';
 import {CdkDragEnd, CdkDragMove, CdkDragStart} from '@angular/cdk/drag-drop';
+import {nodeForEach} from '../shared/utilities';
 
 @Component({
   selector: 'app-hours-scale',
@@ -80,6 +81,14 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
   private _taskInitX: number;
   private _taskInitMarginLeft: number;
 
+  // variáveis do drag new link
+  private _dragLinkStarted: boolean;
+  private _originalClientX: number;
+  private _originalClientY: number;
+  private _originalLeftPosition: number;
+  private _originalTopPosition: number;
+  private _originalLinkItem: IItem;
+
   constructor() {
     this.verticalScrollPositionChange = new EventEmitter<number>();
     this.itemMovedEvt = new EventEmitter<boolean>();
@@ -94,6 +103,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     this.itemDraggedOrCollapsedEvt = false;
     this.guideLineVisible = false;
     this._resizeTaskStarted = false;
+    this._dragLinkStarted = false;
 
     this._itemsSubscription = this.itemsObservable.subscribe((value: IItems) => {
       this.items = value;
@@ -347,10 +357,10 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
   private _verticalScrollEventHandler(event: Event) {
 
     const myFnEventHandler = () => {
+
       const myScrollTop: number = (event.target as HTMLElement).scrollTop;
       const myScrollHeight: number = (event.target as HTMLElement).scrollHeight;
       const myScrollViewPortHeight: number = this._verticalScrollViewPort.clientHeight;
-
 
       this.verticalScrollPositionY = myScrollTop;
       this.verticalScrollPositionChange.emit(myScrollTop);
@@ -436,8 +446,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     };
 
     myFnEventHandler();
-
-    setTimeout(myFnEventHandler, 300);
+    setTimeout(myFnEventHandler, 66);
   }
 
   private _attachVerticalScrollEvent(): void {
@@ -755,6 +764,153 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     const source: any = event.source;
     source._dragRef._passiveTransform = {x: 0, y: 0};
 
+    this.itemMovedEvt.emit(true);
+  }
+
+  public startDragLink(event: MouseEvent, item: IItem): void {
+    this._dragLinkStarted = true;
+    const circles: NodeList = document.querySelectorAll('div.left-circle');
+    nodeForEach(circles, value => {
+      (value as HTMLElement).classList.add('active');
+    });
+
+    const myParentElmt: HTMLElement = event.srcElement.parentElement;
+
+    this._originalLinkItem = item;
+    this._originalClientX = event.x;
+    this._originalClientY = event.y;
+
+    myParentElmt.insertAdjacentHTML('afterend',
+      `<svg class="link temporaryLink"
+             width="0"
+             height="0">
+          <path class="first-back-path" d="M0 0" fill="none" stroke-width="3" stroke="blue"></path>
+          <path class="second-back-path" d="M0 0" fill="none" stroke-width="3" stroke="blue"></path>
+          <path class="first-path" d="M0 0" fill="none" stroke-width="3" stroke="blue"></path>
+          <path class="second-path" d="M0 0" fill="none" stroke-width="3" stroke="blue"></path>
+          <path class="third-path" d="M0 0" fill="none" stroke-width="3" stroke="blue" marker-end="url(#head)"></path>
+          <defs>
+            <marker id='head' orient='auto' markerWidth='2' markerHeight='4' refX='0' refY='2'>
+              <!-- triangle pointing right (+x) -->
+              <path d='M0,0 V4 L2,2 Z' fill='blue'></path>
+            </marker>
+          </defs>
+        </svg>`);
+
+    this._originalLeftPosition =
+      (Number(myParentElmt.style.marginLeft.replace('px', '')) +
+        Number(myParentElmt.style.width.replace('px', ''))) + 6;
+
+    this._originalTopPosition = item._orderNumber * 32 - 32 + 8;
+
+    const mySvg: HTMLElement = document.querySelector('svg.temporaryLink');
+    mySvg.style.left = `${this._originalLeftPosition}px`;
+    mySvg.style.top = `${this._originalTopPosition}px`;
+  }
+
+  public draggingLink(event: MouseEvent): void {
+    if (this._dragLinkStarted) {
+      const mySvg: HTMLElement = document.querySelector('svg.temporaryLink');
+
+      let myDeltaX: number;
+      let myDeltaY: number;
+      let myLeftPosition: number;
+      let myTopPosition: number;
+
+      const myFirstBackPath: HTMLElement = document.querySelector('svg.temporaryLink path.first-back-path');
+      const mySecondBackPath: HTMLElement = document.querySelector('svg.temporaryLink path.second-back-path');
+      const myFirstPath: HTMLElement = document.querySelector('svg.temporaryLink path.first-path');
+      const mySecondPath: HTMLElement = document.querySelector('svg.temporaryLink path.second-path');
+      const myThirdPath: HTMLElement = document.querySelector('svg.temporaryLink path.third-path');
+
+
+      if (event.x > this._originalClientX) {
+        myFirstBackPath.setAttribute('d', 'M0 0');
+        mySecondBackPath.setAttribute('d', 'M0 0');
+
+        myDeltaX = event.x - this._originalClientX;
+        mySvg.style.left = `${this._originalLeftPosition}px`;
+
+        if (event.y > this._originalClientY) {
+          myDeltaY = event.y - this._originalClientY;
+          mySvg.style.top = `${this._originalTopPosition}px`;
+          myFirstPath.setAttribute('d', `M0 8 H${myDeltaX - 11}`);
+          mySecondPath.setAttribute('d', `M${myDeltaX - 11} 8 V${myDeltaY + 8}`);
+          myThirdPath.setAttribute('d', `M${myDeltaX - 11} ${myDeltaY + 8} H${myDeltaX - 6}`);
+
+        } else {
+          myDeltaY = this._originalClientY - event.y;
+          myTopPosition = this._originalTopPosition - myDeltaY;
+          mySvg.style.top = `${myTopPosition}px`;
+          myFirstPath.setAttribute('d', `M0 ${myDeltaY + 8} H${myDeltaX - 11}`);
+          mySecondPath.setAttribute('d', `M${myDeltaX - 11} 8 V${myDeltaY + 8}`);
+          myThirdPath.setAttribute('d', `M${myDeltaX - 11} 8 H${myDeltaX - 6}`);
+
+        }
+      } else {
+
+
+        myDeltaX = (this._originalClientX - event.x) + 30;
+        myLeftPosition = this._originalLeftPosition - myDeltaX + 15;
+        mySvg.style.left = `${myLeftPosition}px`;
+
+        if (event.y > this._originalClientY) {
+          myDeltaY = event.y - this._originalClientY;
+          mySvg.style.top = `${this._originalTopPosition}px`;
+          myFirstBackPath.setAttribute('d', `M${myDeltaX - 15} 8 H${myDeltaX - 5}`);
+          mySecondBackPath.setAttribute('d', `M${myDeltaX - 5} 8 V24`);
+          myFirstPath.setAttribute('d', `M3 24 H${myDeltaX - 5}`);
+          mySecondPath.setAttribute('d', `M3 24 V${myDeltaY + 8}`);
+          myThirdPath.setAttribute('d', `M3 ${myDeltaY + 8} H10`);
+
+        } else {
+          myDeltaY = this._originalClientY - event.y;
+          myTopPosition = this._originalTopPosition - myDeltaY;
+          mySvg.style.top = `${myTopPosition - 8}px`;
+          myFirstBackPath.setAttribute('d', `M${myDeltaX - 15} ${myDeltaY + 16} H${myDeltaX - 5}`);
+          mySecondBackPath.setAttribute('d', `M${myDeltaX - 5} ${myDeltaY} V${myDeltaY + 16}`);
+          myFirstPath.setAttribute('d', `M3 ${myDeltaY} H${myDeltaX - 5}`);
+          mySecondPath.setAttribute('d', `M3 ${myDeltaY} V16`);
+          myThirdPath.setAttribute('d', `M3 16 H10`);
+
+        }
+      }
+
+      mySvg.setAttribute('width', `${myDeltaX}`);
+      mySvg.setAttribute('height', `${myDeltaY + 32}`);
+
+      if (myDeltaY < 32) {
+        mySvg.setAttribute('height', '64');
+      }
+    }
+  }
+
+  public linkDragged(event: MouseEvent): void {
+    if (this._dragLinkStarted) {
+      this._dragLinkStarted = false;
+      const circles: NodeList = document.querySelectorAll('div.left-circle');
+      nodeForEach(circles, value => {
+        (value as HTMLElement).classList.remove('active');
+      });
+
+      const mySvg: HTMLElement = document.querySelector('svg.temporaryLink');
+      mySvg.remove();
+    }
+  }
+
+  public linkDraggedInTarget(item: IItem): void {
+    if (!this._originalLinkItem.links || this._originalLinkItem.links.length === 0) {
+      this._originalLinkItem.links = [];
+    }
+
+    const link: ILink = {
+      data: item
+    };
+
+    this._originalLinkItem.links.push(link);
+
+    console.log(this._originalLinkItem);
+    console.log(item);
     this.itemMovedEvt.emit(true);
   }
 }

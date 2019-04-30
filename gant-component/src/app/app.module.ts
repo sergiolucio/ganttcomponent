@@ -14,7 +14,7 @@ import {RouterModule} from '@angular/router';
 import {HoursScaleComponent} from './component/gantt/hours-scale/hours-scale.component';
 import {TasksDescriptionComponent} from './component/gantt/tasks-description/tasks-description.component';
 import {GanttOptionsPanelComponent} from './component/gantt/gantt-options-panel/gantt-options-panel.component';
-import {GanttTimeStructAdapter} from './component/gantt/services/gantt.time.adapter.service';
+import {GanttTimeStructAdapter} from './component/gantt/shared/gantt.time.adapter.service';
 
 const appRoutes = [
   {path: '', component: HoursScaleStateComponent},

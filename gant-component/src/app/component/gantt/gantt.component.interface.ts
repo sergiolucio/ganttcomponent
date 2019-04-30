@@ -17,8 +17,9 @@ export interface IItem {
   color: string;
   date: IDate;
   progress?: number;
-  _hasNextItems?: boolean;
-  nextItems?: Array<INode>;
+  _hasPrevious?: boolean;
+  _hasLinks?: boolean;
+  links?: Array<ILink>;
   genealogyDegree: number;
   collapsed: boolean;
   _descriptionStyle?: IStyle;
@@ -27,11 +28,12 @@ export interface IItem {
   itemsChildren?: IItems;
   _itemsChildrenKeys?: Array<string>;
   _itemsNumber?: number;
+  _orderNumber?: number;
 }
 
-export interface INode {
-  next: IItem;
-  _nextArrowStyle?: IStyle;
+export interface ILink {
+  data: IItem;
+  style?: IStyle;
 }
 
 export interface IDate {

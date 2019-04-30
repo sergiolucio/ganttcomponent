@@ -32,7 +32,7 @@ export class GanttUtilsService {
           genealogyDegree: 1,
           collapsed: false,
           itemsChildren: {},
-          nextItems: []
+          links: []
         };
 
         for (let k = 1; k < 3; k++) {
@@ -50,7 +50,11 @@ export class GanttUtilsService {
           };
 
           project.itemsChildren[`Task${j}${i}${k}`] = task;
-          project.nextItems.push({next: task});
+          project.links.push(
+            {
+              data: task
+            }
+          );
 
           for (let l = 1; l < 3; l++) {
             let projectChild: IItem;

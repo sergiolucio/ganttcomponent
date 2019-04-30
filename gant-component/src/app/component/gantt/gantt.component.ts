@@ -1,5 +1,5 @@
 import {Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
-import {EScaleStates, IInputOptions, IItems, IItem} from './gantt.component.interface';
+import {EScaleStates, IInputOptions, IItem, IItems} from './gantt.component.interface';
 import {Observable} from 'rxjs';
 import * as moment from 'moment';
 import {Moment} from 'moment';
@@ -39,7 +39,8 @@ export class GanttComponent implements OnInit, OnChanges {
   public scrollPosition: number;
   private _subItemsByItem: number;
 
-  constructor() {}
+  constructor() {
+  }
 
   ngOnInit() {
     const myTasksParent = document.querySelector('div.row.tables-container');
@@ -56,7 +57,7 @@ export class GanttComponent implements OnInit, OnChanges {
 
     if (this.items) {
       this.initInspectItems();
-      this._initProjectsKeys();
+      this._initItemsKeys();
     }
 
     this.itemDraggedOrCollapsedEvt = false;
@@ -76,7 +77,7 @@ export class GanttComponent implements OnInit, OnChanges {
 
     if (projects && !projects.isFirstChange()) {
       this.initInspectItems();
-      this._initProjectsKeys();
+      this._initItemsKeys();
     }
   }
 
@@ -142,7 +143,7 @@ export class GanttComponent implements OnInit, OnChanges {
     }
 
     for (const projKey of Object.keys(this.items)) {
-      this._inspectNextItems(this.items[projKey]);
+      this._inspectLinks(this.items[projKey]);
     }
   }
 
@@ -150,8 +151,10 @@ export class GanttComponent implements OnInit, OnChanges {
     this.itemsCounter++; // contador de items totais
     this._subItemsByItem++; // contador de items por projeto
 
+    item._orderNumber = this.itemsCounter;
     item._hasChildren = !!item.itemsChildren && Object.keys(item.itemsChildren).length > 0;
-    item._hasNextItems = !!item.nextItems && Object.keys(item.nextItems).length > 0;
+    item._hasPrevious = false;
+    item._hasLinks = !!item.links && Object.keys(item.links).length > 0;
     item._descriptionStyle = {};
     item._descriptionStyle['border-left'] = mainProjectColor ? '3px solid ' + mainProjectColor : '3px solid ' + item.color;
     item._descriptionStyle['padding-left'] = item.genealogyDegree * 15 + 'px';
@@ -172,11 +175,134 @@ export class GanttComponent implements OnInit, OnChanges {
         this._inspectItems(item.itemsChildren[projKey], mainProjectColor ? mainProjectColor : item.color);
       }
     }
+
   }
 
-  private _inspectNextItems(item: IItem): void {
-    if (item._hasNextItems) {
+  private _inspectLinks(previousItem: IItem): void {
+    if (previousItem._hasLinks && previousItem.links.length > 0) {
 
+      for (const link of previousItem.links) {
+        link.style = {};
+        let myTargetFounded = false;
+
+        const findTarget = (nextItem) => {
+          if (!myTargetFounded) {
+            if (link.data === nextItem) {
+              myTargetFounded = true;
+
+              nextItem._hasPrevious = true;
+
+              let minDate: Date;
+              let maxDate: Date;
+
+              if (previousItem.date.from < nextItem.date.from) {
+                minDate = previousItem.date.from;
+                link.style['margin-left'] = `${Number(previousItem._detailsStyle['margin-left'].replace('px', '')) - 30}px`;
+              } else {
+                minDate = nextItem.date.from;
+                link.style['margin-left'] = `${Number(nextItem._detailsStyle['margin-left'].replace('px', '')) - 30}px`;
+              }
+
+              if (previousItem.date.to < nextItem.date.to) {
+                maxDate = nextItem.date.to;
+              } else {
+                maxDate = previousItem.date.to;
+              }
+
+              let minDateMoment: Moment = moment(minDate);
+              const maxDateMoment: Moment = moment(maxDate);
+
+              if (moment(this.inputOptions.range.from) > minDateMoment) {
+                minDateMoment = moment(this.inputOptions.range.from);
+              }
+
+              if (maxDateMoment.diff(minDateMoment, 'minutes') <= 0) {
+                link.style['width'] = '0';
+              } else {
+                link.style['width'] =
+                  `${((this.cellWidth * (maxDateMoment.diff(minDateMoment, 'minutes'))) / (this.inputOptions.viewScale)) + 60}`;
+              }
+
+
+              let myWidth: number;
+
+              if (previousItem.date.from < nextItem.date.from) {
+                myWidth = Number(previousItem._detailsStyle['width'].replace('px', ''));
+              } else {
+                myWidth =
+                  Number(previousItem._detailsStyle['width'].replace('px', '')) +
+                  (Number(previousItem._detailsStyle['margin-left'].replace('px', '')) -
+                  Number(nextItem._detailsStyle['margin-left'].replace('px', '')));
+              }
+
+              let myThirdPathEnd: number;
+
+              if (previousItem._orderNumber > nextItem._orderNumber) {
+                // TODO qd o next item estiver acima do de origem
+                const myHeight: number = previousItem._orderNumber - nextItem._orderNumber;
+                link.style['height'] = `${(myHeight + 1) * 32}`;
+                link.style['top'] = `-${(myHeight) * 32}`;
+                link.style['first-path'] = `M${myWidth + 35} ${(myHeight + 1) * 32 - 24} H${myWidth + 55}`;
+                link.style['second-path'] = `M${myWidth + 55} ${(myHeight + 1) * 32 - 24} V${(myHeight) * 32 - 8}`;
+
+                if (previousItem.date.from < nextItem.date.from) {
+                  myThirdPathEnd =
+                    Number(nextItem._detailsStyle['margin-left'].replace('px', '')) -
+                    Number(previousItem._detailsStyle['margin-left'].replace('px', ''));
+
+                } else {
+                  myThirdPathEnd = 0;
+
+                }
+                link.style['third-path'] = `M${myWidth + 55} ${(myHeight) * 32 - 8} H${myThirdPathEnd + 5}`;
+                link.style['fourth-path'] = `M${myThirdPathEnd + 5} ${(myHeight) * 32 - 8} V8`;
+                link.style['fifth-path'] = `M${myThirdPathEnd + 5} 8 H${myThirdPathEnd + 15}`;
+
+              } else {
+
+                link.style['top'] = '0';
+                link.style['height'] = `${(nextItem._orderNumber - previousItem._orderNumber + 1) * 32}`;
+
+                if (previousItem.date.from < nextItem.date.from) {
+                  myThirdPathEnd =
+                    Number(nextItem._detailsStyle['margin-left'].replace('px', '')) -
+                    Number(previousItem._detailsStyle['margin-left'].replace('px', ''));
+
+                } else {
+                  myThirdPathEnd = 0;
+
+                }
+                link.style['first-path'] = `M${myWidth + 35} 8 H${myWidth + 55}`;
+                link.style['second-path'] = `M${myWidth + 55} 8 V24`;
+                link.style['third-path'] = `M${myWidth + 55} 24 H${myThirdPathEnd + 5}`;
+
+                const myFourthPathEnd: number = Number(link.style['height']) - 16 - 8;
+                link.style['fourth-path'] = `M${myThirdPathEnd + 5} 24 V${myFourthPathEnd}`;
+
+                link.style['fifth-path'] = `M${myThirdPathEnd + 5} ${myFourthPathEnd} H${myThirdPathEnd + 15}`;
+              }
+
+
+            } else if (nextItem._hasChildren) {
+              for (const childKey of Object.keys(nextItem.itemsChildren)) {
+                findTarget(nextItem.itemsChildren[childKey]);
+              }
+            }
+          } else {
+            return;
+          }
+        };
+
+        for (const itemKey of Object.keys(this.items)) {
+          findTarget(this.items[itemKey]);
+        }
+      }
+    }
+
+    if (previousItem._hasChildren) {
+      for (const childKey of Object.keys(previousItem.itemsChildren)) {
+        this._inspectLinks(previousItem.itemsChildren[childKey]);
+      }
     }
   }
 
@@ -216,7 +342,7 @@ export class GanttComponent implements OnInit, OnChanges {
     this.toRange = this.inputOptions.range.to;
   }
 
-  private _initProjectsKeys(): void {
+  private _initItemsKeys(): void {
     this.itemsKeys = [];
 
     for (const projKey of Object.keys(this.items)) {
