@@ -18,6 +18,7 @@ export interface IItem {
   date: IDate;
   progress?: number;
   _hasPrevious?: boolean;
+  previousLinks?: Array<ILink>;
   _hasLinks?: boolean;
   links?: Array<ILink>;
   genealogyDegree: number;

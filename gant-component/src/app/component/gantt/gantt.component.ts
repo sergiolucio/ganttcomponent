@@ -191,6 +191,14 @@ export class GanttComponent implements OnInit, OnChanges {
               myTargetFounded = true;
 
               nextItem._hasPrevious = true;
+              if (!nextItem.previousLinks || nextItem.previousLinks.length === 0) {
+                nextItem.previousLinks = [];
+              }
+              nextItem.previousLinks.push(
+                {
+                  data: previousItem
+                }
+              );
 
               let minDate: Date;
               let maxDate: Date;

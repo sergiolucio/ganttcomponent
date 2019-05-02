@@ -17,6 +17,7 @@ import {IItem, IItems, ILink} from '../gantt.component.interface';
 import {Observable, Subscription} from 'rxjs';
 import {CdkDragEnd, CdkDragMove, CdkDragStart} from '@angular/cdk/drag-drop';
 import {nodeForEach} from '../shared/utilities';
+import {Moment} from 'moment';
 
 @Component({
   selector: 'app-hours-scale',
@@ -546,7 +547,6 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     const myFinalPositionX: number = this.guideLinePositionLeft + myParentElmtPositionX;
     const myDeltaX: number = myFinalPositionX - this._dragInitPositionX;
 
-
     // calcular através dos px movidos a diferença em minutos da posição original
     const myDateDiff = (myDeltaX) * (this.viewScale) / this.elmtCellWidth;
 
@@ -899,18 +899,39 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   public linkDraggedInTarget(item: IItem): void {
-    if (!this._originalLinkItem.links || this._originalLinkItem.links.length === 0) {
-      this._originalLinkItem.links = [];
+    if (this._dragLinkStarted) {
+
+      if (!this._originalLinkItem.links || this._originalLinkItem.links.length === 0) {
+        this._originalLinkItem.links = [];
+      }
+
+      const link: ILink = {
+        data: item
+      };
+
+      this._originalLinkItem.links.push(link);
+
+      console.log(this._originalLinkItem);
+      console.log(item);
+      this.itemMovedEvt.emit(true);
+    }
+  }
+
+  public deleteLink(item: IItem): void {
+    if (item._hasPrevious) {
+      debugger;
+      for (const prev of item.previousLinks) {
+        let j = 0;
+        for (const link of prev.data.links) {
+          if (link.data === item) {
+            prev.data.links.splice(j, 1);
+          }
+          j++;
+        }
+      }
     }
 
-    const link: ILink = {
-      data: item
-    };
-
-    this._originalLinkItem.links.push(link);
-
-    console.log(this._originalLinkItem);
-    console.log(item);
+    item.previousLinks = [];
     this.itemMovedEvt.emit(true);
   }
 }

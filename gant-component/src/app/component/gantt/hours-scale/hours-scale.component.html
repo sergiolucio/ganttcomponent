@@ -50,7 +50,7 @@
        [ngStyle]="item._detailsStyle"
        [style.left.px]="-freeSpaceLeft">
 
-    <div class="left-circle" [ngClass]="{'hasPrevious': item._hasPrevious}" (mouseup)="linkDraggedInTarget(item)"></div>
+    <div class="left-circle" [ngClass]="{'hasPrevious': item._hasPrevious}" (mouseup)="linkDraggedInTarget(item)" (click)="deleteLink(item)"></div>
 
     <div class="left-limit"
          cdkDrag
@@ -100,10 +100,10 @@
              [attr.height]="link.style['height']"
              [style.top.px]="link.style['top']"
              [style.margin-left]="link.style['margin-left']">
-          <path [attr.d]="link.style['first-path']" fill="none" stroke-width="3" stroke="blue"></path>
-          <path [attr.d]="link.style['second-path']" fill="none" stroke-width="3" stroke="blue"></path>
-          <path [attr.d]="link.style['third-path']" fill="none" stroke-width="3" stroke="blue"></path>
-          <path [attr.d]="link.style['fourth-path']" fill="none" stroke-width="3" stroke="blue"></path>
+          <path [attr.d]="link.style['first-path']" fill="none" stroke-width="3" [attr.stroke]="item.color"></path>
+          <path [attr.d]="link.style['second-path']" fill="none" stroke-width="3" [attr.stroke]="item.color"></path>
+          <path [attr.d]="link.style['third-path']" fill="none" stroke-width="3" [attr.stroke]="item.color"></path>
+          <path [attr.d]="link.style['fourth-path']" fill="none" stroke-width="3" [attr.stroke]="item.color"></path>
           <defs>
             <marker id='head'
                     orient='auto'
@@ -112,10 +112,10 @@
                     refX='0.1'
                     refY='2'>
               <!-- triangle pointing right (+x) -->
-              <path d='M0,0 V4 L2,2 Z' fill='blue'></path>
+              <path d='M0,0 V4 L2,2 Z' fill="black"></path>
             </marker>
           </defs>
-          <path [attr.d]="link.style['fifth-path']" fill="none" stroke-width="3" stroke="blue" marker-end="url(#head)"></path>
+          <path [attr.d]="link.style['fifth-path']" fill="none" stroke-width="3" [attr.stroke]="item.color" marker-end="url(#head)"></path>
         </svg>
       </ng-template>
     </ng-template>
