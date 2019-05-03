@@ -15,6 +15,8 @@ export class GanttComponent implements OnInit, OnChanges {
   @Input() inputOptions: IInputOptions;
   @Input() datePickerActive: boolean;
   @Input() timePickerActive: boolean;
+  @Input() linkActive: boolean;
+  @Input() linkEditable: boolean;
   public viewScale: number;
   public editScale: number;
   public fromRange: Date;
@@ -51,13 +53,15 @@ export class GanttComponent implements OnInit, OnChanges {
     this.grabber = false;
     this.cellWidth = 50;
 
+    this._initViewPortSizeEventListener();
+
     if (this.inputOptions) {
       this._inspectInputOptions();
     }
 
     if (this.items) {
-      this.initInspectItems();
       this._initItemsKeys();
+      this.initInspectItems();
     }
 
     this.itemDraggedOrCollapsedEvt = false;
@@ -69,15 +73,15 @@ export class GanttComponent implements OnInit, OnChanges {
     console.log(this.itemsCounter);
   }
 
-  ngOnChanges({inputOptions, projects}: SimpleChanges): void {
+  ngOnChanges({inputOptions, items}: SimpleChanges): void {
     if (inputOptions && !inputOptions.isFirstChange()) {
       this._inspectInputOptions();
       this.initInspectItems();
     }
 
-    if (projects && !projects.isFirstChange()) {
-      this.initInspectItems();
+    if (items && !items.isFirstChange()) {
       this._initItemsKeys();
+      this.initInspectItems();
     }
   }
 
@@ -136,7 +140,7 @@ export class GanttComponent implements OnInit, OnChanges {
   public initInspectItems(): void {
     this.itemsCounter = 0;
 
-    for (const projKey of Object.keys(this.items)) {
+    for (const projKey of this.itemsKeys) {
       this._subItemsByItem = 0;
       this._inspectItems(this.items[projKey]);
       this.items[projKey]._itemsNumber = this._subItemsByItem;
@@ -169,13 +173,30 @@ export class GanttComponent implements OnInit, OnChanges {
     }
 
     if (item._hasChildren) {
-      item._itemsChildrenKeys = [];
-      for (const projKey of Object.keys(item.itemsChildren)) {
-        item._itemsChildrenKeys.push(projKey);
-        this._inspectItems(item.itemsChildren[projKey], mainProjectColor ? mainProjectColor : item.color);
+      if (!item._itemsChildrenKeys || item._itemsChildrenKeys.length === 0) {
+        item._itemsChildrenKeys = [];
+        for (const projKey of Object.keys(item.itemsChildren)) {
+          item._itemsChildrenKeys.push(projKey);
+          this._inspectItems(item.itemsChildren[projKey], mainProjectColor ? mainProjectColor : item.color);
+        }
+      } else {
+        for (const projKey of item._itemsChildrenKeys) {
+          this._inspectItems(item.itemsChildren[projKey], mainProjectColor ? mainProjectColor : item.color);
+        }
       }
     }
 
+  }
+
+  private _reorderItems(item: IItem): void {
+    this.itemsCounter++; // contador de items totais
+    item._orderNumber = this.itemsCounter;
+
+    if (item._hasChildren) {
+      for (const projKey of item._itemsChildrenKeys) {
+        this._reorderItems(item.itemsChildren[projKey]);
+      }
+    }
   }
 
   private _inspectLinks(previousItem: IItem): void {
@@ -240,7 +261,7 @@ export class GanttComponent implements OnInit, OnChanges {
                 myWidth =
                   Number(previousItem._detailsStyle['width'].replace('px', '')) +
                   (Number(previousItem._detailsStyle['margin-left'].replace('px', '')) -
-                  Number(nextItem._detailsStyle['margin-left'].replace('px', '')));
+                    Number(nextItem._detailsStyle['margin-left'].replace('px', '')));
               }
 
               let myThirdPathEnd: number;
@@ -387,10 +408,28 @@ export class GanttComponent implements OnInit, OnChanges {
   }
 
   public itemDraggedOrCollapsedEvtFired(value: boolean): void {
+    this.itemsCounter = 0;
+    for (const projKey of this.itemsKeys) {
+      this._reorderItems(this.items[projKey]);
+    }
+    for (const projKey of this.itemsKeys) {
+      this._inspectLinks(this.items[projKey]);
+    }
+
     this.itemDraggedOrCollapsedEvt = value;
   }
 
   public itemMovedEvt(): void {
     this.initInspectItems();
+  }
+
+  private _initViewPortSizeEventListener(): void {
+    window.addEventListener('resize', () => {
+      const myTasksParent = document.querySelector('div.row.tables-container');
+      this.tasksParentWidth = myTasksParent.clientWidth;
+      this.tasksDescWidth = this.tasksParentWidth * 0.285;
+      this.tasksWidth = this.tasksParentWidth * 0.7;
+      this.tasksDivisionWidth = this.tasksParentWidth * 0.005;
+    }, {passive: true});
   }
 }

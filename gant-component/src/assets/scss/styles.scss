@@ -11,3 +11,7 @@ body {
   color: #545555;
   font: 400 (1em / 1.25) NunitoSans, Helvetica, Arial, sans-serif;
 }
+
+* {
+  user-select: none;
+}

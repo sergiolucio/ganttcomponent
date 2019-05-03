@@ -33,10 +33,12 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
   private _itemsSubscription: Subscription;
   public items: IItems;
   @Input() itemsKeys: Array<string>;
-  public itemsKeysDatasource: Array<string>;
+  @Input() itemsKeysDatasource: Array<string>;
   @Input() itemDraggedOrCollapsedEvt: boolean;
 
   // inputs com opções
+  @Input() linkActive: boolean;
+  @Input() linkEditable: boolean;
   @Input() viewScale: number;
   @Input() editScale: number;
   @Input() fromRange: Date;
@@ -55,10 +57,12 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
   public backgroundLayerWidth: number;
 
   // variáveis do virtual scroll
+  @Output() verticalVirtualScroll: EventEmitter<Event>;
   @Input() verticalScrollPositionY: number;
   @Output() verticalScrollPositionChange: EventEmitter<number>;
   private _verticalScrollViewPort: HTMLElement;
   private _verticalScrollHistory: number;
+  private _isScrollingVertically: number;
   private _indexMax: number;
   private _indexMin: number;
   public freeSpaceTop: number;
@@ -97,6 +101,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     this.editScaleChange = new EventEmitter<number>();
     this.fromRangeChange = new EventEmitter<Date>();
     this.toRangeChange = new EventEmitter<Date>();
+    this.verticalVirtualScroll = new EventEmitter<Event>();
   }
 
   ngOnInit() {
@@ -116,16 +121,25 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     // x = 1 dia / 1 viewScale -> depois é preciso convertir x em uma só célula -> x * this.elmtCellWidth
     this.dateCellWidth = (1440 / this.viewScale) * this.elmtCellWidth;
 
+    const myScrollViewport: HTMLElement = document.querySelector('div.background-tasks-container') as HTMLElement;
+    const myModelViewportHeight: number = (document.querySelector('#tasks-description') as HTMLElement).clientHeight;
+    myScrollViewport.style.height = (myModelViewportHeight - 64) + 'px';
+
+    this._initViewPortSizeEventListener();
+
     this._initHorizontalVirtualScroll();
 
     this.backgroundLayerWidth = this.dateCellWidth * this.totalDateRange.length;
 
     this._setScaleRange();
 
+    this._initVerticalVirtualScroll();
+
     this.freeSpaceLeft = 0;
     this._horizontalScrollHistory = 0;
-
-    this._initVerticalVirtualScroll();
+    this._indexMin = 0;
+    this._indexMax = this.itemsKeysDatasource.length - 1;
+    this.freeSpaceTop = 0;
   }
 
   ngOnChanges(
@@ -285,6 +299,7 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
+
   private _horizontalScrollEventHandler(event: Event): void {
 
     const myFnEventHandler = () => {
@@ -358,7 +373,6 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
   private _verticalScrollEventHandler(event: Event) {
 
     const myFnEventHandler = () => {
-
       const myScrollTop: number = (event.target as HTMLElement).scrollTop;
       const myScrollHeight: number = (event.target as HTMLElement).scrollHeight;
       const myScrollViewPortHeight: number = this._verticalScrollViewPort.clientHeight;
@@ -447,7 +461,12 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     };
 
     myFnEventHandler();
-    setTimeout(myFnEventHandler, 66);
+
+    if (this._isScrollingVertically) {
+      clearTimeout(this._isScrollingVertically);
+    }
+
+    this._isScrollingVertically = setTimeout(myFnEventHandler, 66);
   }
 
   private _attachVerticalScrollEvent(): void {
@@ -495,14 +514,14 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
 
       if (myDecimalPart >= 0) {
         if (myDecimalPart >= 0.5 && this._isFirstInc) {
-          this.guideLinePositionLeft += myDragScale;
+          this.guideLinePositionLeft = this._guideLineInitPosition + (myDragScale * Math.round(myDeltaX / myDragScale));
           this._isFirstInc = false;
         } else if (myDecimalPart <= 0.49) {
           this._isFirstInc = true;
         }
       } else {
         if (myDecimalPart >= -0.49 && this._isFirstInc) {
-          this.guideLinePositionLeft += myDragScale;
+          this.guideLinePositionLeft = this._guideLineInitPosition + (myDragScale * Math.round(myDeltaX / myDragScale));
           this._isFirstInc = false;
         } else if (myDecimalPart <= -0.5) {
           this._isFirstInc = true;
@@ -511,14 +530,14 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     } else if (event.delta.x < 0) {
       if (myDecimalPart >= 0) {
         if (myDecimalPart <= 0.49 && this._isFirstInc) {
-          this.guideLinePositionLeft -= myDragScale;
+          this.guideLinePositionLeft = this._guideLineInitPosition + (myDragScale * Math.round(myDeltaX / myDragScale));
           this._isFirstInc = false;
         } else if (myDecimalPart >= 0.5) {
           this._isFirstInc = true;
         }
       } else {
         if (myDecimalPart <= -0.5 && this._isFirstInc) {
-          this.guideLinePositionLeft -= myDragScale;
+          this.guideLinePositionLeft = this._guideLineInitPosition + (myDragScale * Math.round(myDeltaX / myDragScale));
           this._isFirstInc = false;
         } else if (myDecimalPart >= -0.49) {
           this._isFirstInc = true;
@@ -530,7 +549,6 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
     const myParentElmtPositionX = myParentElmt.getBoundingClientRect().left;
     const myFinalPositionX: number = this.guideLinePositionLeft + myParentElmtPositionX;
     const myFinalDeltaX: number = myFinalPositionX - this._dragInitPositionX;
-
 
     // calcular através dos px movidos a diferença em minutos da posição original
     const myDateDiff = (myFinalDeltaX) * (this.viewScale) / this.elmtCellWidth;
@@ -595,14 +613,14 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
 
         if (myDecimalPart >= 0) {
           if (myDecimalPart >= 0.5 && this._isFirstInc) {
-            this.guideLinePositionLeft += myDragScale;
+            this.guideLinePositionLeft = this._guideLineInitPosition - (myDragScale * Math.round(myDeltaX / myDragScale));
             this._isFirstInc = false;
           } else if (myDecimalPart <= 0.49) {
             this._isFirstInc = true;
           }
         } else {
           if (myDecimalPart >= -0.49 && this._isFirstInc) {
-            this.guideLinePositionLeft += myDragScale;
+            this.guideLinePositionLeft = this._guideLineInitPosition - (myDragScale * Math.round(myDeltaX / myDragScale));
             this._isFirstInc = false;
           } else if (myDecimalPart <= -0.5) {
             this._isFirstInc = true;
@@ -611,14 +629,14 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
       } else if (event.delta.x < 0) {
         if (myDecimalPart >= 0) {
           if (myDecimalPart <= 0.49 && this._isFirstInc) {
-            this.guideLinePositionLeft -= myDragScale;
+            this.guideLinePositionLeft = this._guideLineInitPosition - (myDragScale * Math.round(myDeltaX / myDragScale));
             this._isFirstInc = false;
           } else if (myDecimalPart >= 0.5) {
             this._isFirstInc = true;
           }
         } else {
           if (myDecimalPart <= -0.5 && this._isFirstInc) {
-            this.guideLinePositionLeft -= myDragScale;
+            this.guideLinePositionLeft = this._guideLineInitPosition - (myDragScale * Math.round(myDeltaX / myDragScale));
             this._isFirstInc = false;
           } else if (myDecimalPart >= -0.49) {
             this._isFirstInc = true;
@@ -686,51 +704,53 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
 
     const myDeltaX: number = event.pointerPosition.x - this._taskInitX; // positivo qd se desloca ltr;
     const myElmtWidth: number = this._taskInitWidth + myDeltaX;
+    const myDragScale: number = (this.elmtCellWidth * this.editScale) / this.viewScale;
+    const myDecimalPart: number = (myDeltaX / myDragScale) % 1; // o resto da divisão de um número por 1 dá a parte décimal
 
-    item._detailsStyle['width'] = myElmtWidth + 'px';
+
+    if (myElmtWidth > myDragScale) {
+      item._detailsStyle['width'] = myElmtWidth + 'px';
+
+      if (event.delta.x > 0) {
+
+        if (myDecimalPart >= 0) {
+          if (myDecimalPart >= 0.5 && this._isFirstInc) {
+            this.guideLinePositionLeft = this._guideLineInitPosition + (myDragScale * Math.round(myDeltaX / myDragScale));
+            this._isFirstInc = false;
+          } else if (myDecimalPart <= 0.49) {
+            this._isFirstInc = true;
+          }
+        } else {
+          if (myDecimalPart >= -0.49 && this._isFirstInc) {
+            this.guideLinePositionLeft = this._guideLineInitPosition + (myDragScale * Math.round(myDeltaX / myDragScale));
+            this._isFirstInc = false;
+          } else if (myDecimalPart <= -0.5) {
+            this._isFirstInc = true;
+          }
+        }
+      } else if (event.delta.x < 0) {
+        if (myDecimalPart >= 0) {
+          if (myDecimalPart <= 0.49 && this._isFirstInc) {
+            this.guideLinePositionLeft = this._guideLineInitPosition + (myDragScale * Math.round(myDeltaX / myDragScale));
+            this._isFirstInc = false;
+          } else if (myDecimalPart >= 0.5) {
+            this._isFirstInc = true;
+          }
+        } else {
+          if (myDecimalPart <= -0.5 && this._isFirstInc) {
+            this.guideLinePositionLeft = this._guideLineInitPosition + (myDragScale * Math.round(myDeltaX / myDragScale));
+            this._isFirstInc = false;
+          } else if (myDecimalPart >= -0.49) {
+            this._isFirstInc = true;
+          }
+        }
+      }
+    }
 
     // código para fazer 'reset' ao drag... sem isto quando pegassemos duas vezes o mesmo elemento ele ia somar ao drag anterior!
     const mySource: any = event.source;
     mySource.element.nativeElement.style.transform = 'none';
     mySource._dragRef._passiveTransform = {x: 0, y: 0};
-
-    const myDragScale: number = (this.elmtCellWidth * this.editScale) / this.viewScale;
-    const myDecimalPart: number = (myDeltaX / myDragScale) % 1; // o resto da divisão de um número por 1 dá a parte décimal
-
-    if (event.delta.x > 0) {
-
-      if (myDecimalPart >= 0) {
-        if (myDecimalPart >= 0.5 && this._isFirstInc) {
-          this.guideLinePositionLeft += myDragScale;
-          this._isFirstInc = false;
-        } else if (myDecimalPart <= 0.49) {
-          this._isFirstInc = true;
-        }
-      } else {
-        if (myDecimalPart >= -0.49 && this._isFirstInc) {
-          this.guideLinePositionLeft += myDragScale;
-          this._isFirstInc = false;
-        } else if (myDecimalPart <= -0.5) {
-          this._isFirstInc = true;
-        }
-      }
-    } else if (event.delta.x < 0) {
-      if (myDecimalPart >= 0) {
-        if (myDecimalPart <= 0.49 && this._isFirstInc) {
-          this.guideLinePositionLeft -= myDragScale;
-          this._isFirstInc = false;
-        } else if (myDecimalPart >= 0.5) {
-          this._isFirstInc = true;
-        }
-      } else {
-        if (myDecimalPart <= -0.5 && this._isFirstInc) {
-          this.guideLinePositionLeft -= myDragScale;
-          this._isFirstInc = false;
-        } else if (myDecimalPart >= -0.49) {
-          this._isFirstInc = true;
-        }
-      }
-    }
 
     const myParentElmt: HTMLElement = myElmt.parentElement;
     const myParentElmtPositionX = myParentElmt.getBoundingClientRect().left;
@@ -768,20 +788,22 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   public startDragLink(event: MouseEvent, item: IItem): void {
-    this._dragLinkStarted = true;
-    const circles: NodeList = document.querySelectorAll('div.left-circle');
-    nodeForEach(circles, value => {
-      (value as HTMLElement).classList.add('active');
-    });
+    if (this.linkEditable) {
+      console.log(event);
+      this._dragLinkStarted = true;
+      const circles: NodeList = document.querySelectorAll('div.left-circle');
+      nodeForEach(circles, value => {
+        (value as HTMLElement).classList.add('active');
+      });
 
-    const myParentElmt: HTMLElement = event.srcElement.parentElement;
+      const myParentElmt: HTMLElement = event.srcElement.parentElement;
 
-    this._originalLinkItem = item;
-    this._originalClientX = event.x;
-    this._originalClientY = event.y;
+      this._originalLinkItem = item;
+      this._originalClientX = event.x;
+      this._originalClientY = event.y;
 
-    myParentElmt.insertAdjacentHTML('afterend',
-      `<svg class="link temporaryLink"
+      myParentElmt.insertAdjacentHTML('afterend',
+        `<svg class="link temporaryLink"
              width="0"
              height="0">
           <path class="first-back-path" d="M0 0" fill="none" stroke-width="3" stroke="blue"></path>
@@ -797,15 +819,17 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
           </defs>
         </svg>`);
 
-    this._originalLeftPosition =
-      (Number(myParentElmt.style.marginLeft.replace('px', '')) +
-        Number(myParentElmt.style.width.replace('px', ''))) + 6;
+      this._originalLeftPosition =
+        (Number(myParentElmt.style.marginLeft.replace('px', '')) +
+          Number(myParentElmt.style.width.replace('px', ''))) + 6;
 
-    this._originalTopPosition = item._orderNumber * 32 - 32 + 8;
+      this._originalTopPosition = item._orderNumber * 32 - 32 + 8;
+      console.log(item._orderNumber);
 
-    const mySvg: HTMLElement = document.querySelector('svg.temporaryLink');
-    mySvg.style.left = `${this._originalLeftPosition}px`;
-    mySvg.style.top = `${this._originalTopPosition}px`;
+      const mySvg: HTMLElement = document.querySelector('svg.temporaryLink');
+      mySvg.style.left = `${this._originalLeftPosition}px`;
+      mySvg.style.top = `${this._originalTopPosition}px`;
+    }
   }
 
   public draggingLink(event: MouseEvent): void {
@@ -910,28 +934,38 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
       };
 
       this._originalLinkItem.links.push(link);
-
-      console.log(this._originalLinkItem);
-      console.log(item);
       this.itemMovedEvt.emit(true);
     }
   }
 
   public deleteLink(item: IItem): void {
-    if (item._hasPrevious) {
-      debugger;
-      for (const prev of item.previousLinks) {
-        let j = 0;
-        for (const link of prev.data.links) {
-          if (link.data === item) {
-            prev.data.links.splice(j, 1);
+    if (this.linkEditable) {
+      if (item._hasPrevious) {
+        for (const prev of item.previousLinks) {
+          let j = 0;
+          for (const link of prev.data.links) {
+            if (link.data === item) {
+              prev.data.links.splice(j, 1);
+            }
+            j++;
           }
-          j++;
         }
       }
-    }
 
-    item.previousLinks = [];
-    this.itemMovedEvt.emit(true);
+      item.previousLinks = [];
+      this.itemMovedEvt.emit(true);
+    }
+  }
+
+  private _initViewPortSizeEventListener() {
+    window.addEventListener('resize', () => {
+      const myScrollViewport: HTMLElement = document.querySelector('div.background-tasks-container') as HTMLElement;
+      const myModelViewportHeight: number = (document.querySelector('#tasks-description') as HTMLElement).clientHeight;
+      myScrollViewport.style.height = (myModelViewportHeight - 64) + 'px';
+      this.dateCellWidth = (1440 / this.viewScale) * this.elmtCellWidth;
+      this._initHorizontalVirtualScroll();
+      this.backgroundLayerWidth = this.dateCellWidth * this.totalDateRange.length;
+      this._refreshVerticalVirtualScroll();
+    }, {passive: true});
   }
 }

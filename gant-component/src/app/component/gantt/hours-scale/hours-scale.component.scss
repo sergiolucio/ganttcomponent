@@ -104,13 +104,9 @@
               background-color: black;
               height: 0.5rem;
 
-              &:hover {
-                cursor: copy;
-              }
 
               &.hasPrevious {
                 display: block!important;
-                cursor: not-allowed;
               }
 
               &.hasNext {
@@ -130,8 +126,13 @@
               right: -0.6rem;
             }
 
-            &:hover div.left-circle, &:hover div.right-circle {
+            &.hoverable:hover div.right-circle, &.hoverable:hover div.left-circle {
               display: block!important;
+              cursor: copy;
+            }
+
+            &.hoverable:hover div.left-circle.hasPrevious {
+              cursor: not-allowed;
             }
           }
 

@@ -22,7 +22,8 @@
           </div>
         </div>
 
-        <div class="background-tasks-content" [style.margin-top.px]="freeSpaceTop" (mousemove)="draggingLink($event)" (mouseup)="linkDragged($event)">
+        <div class="background-tasks-content" [style.margin-top.px]="freeSpaceTop" (mousemove)="draggingLink($event)"
+             (mouseup)="linkDragged($event)">
           <ng-template ngFor let-itemKey [ngForOf]="itemsKeysDatasource">
             <ng-container *ngTemplateOutlet="itemTemplate; context: {item: items[itemKey]}"></ng-container>
           </ng-template>
@@ -42,6 +43,7 @@
 <ng-template #itemTemplate let-item="item">
 
   <div class="item-resizable"
+       [ngClass]="{'hoverable': linkEditable}"
        cdkDrag
        cdkDragLockAxis="x"
        (cdkDragStarted)="startDrag($event)"
@@ -50,7 +52,8 @@
        [ngStyle]="item._detailsStyle"
        [style.left.px]="-freeSpaceLeft">
 
-    <div class="left-circle" [ngClass]="{'hasPrevious': item._hasPrevious}" (mouseup)="linkDraggedInTarget(item)" (click)="deleteLink(item)"></div>
+    <div class="left-circle" [ngClass]="{'hasPrevious': item._hasPrevious && linkActive}" (mouseup)="linkDraggedInTarget(item)"
+         (click)="deleteLink(item)"></div>
 
     <div class="left-limit"
          cdkDrag
@@ -72,11 +75,13 @@
          (cdkDragMoved)="resizingTaskRightSide($event, item)"
          (cdkDragEnded)="endResizeTaskRightSide($event, item)"></div>
 
-    <div class="right-circle" [ngClass]="{'hasNext': item._hasLinks}" (mousedown)="startDragLink($event, item)"></div>
+    <div class="right-circle" [ngClass]="{'hasNext': item._hasLinks && linkActive}" (mousedown)="startDragLink($event, item)"></div>
 
   </div>
 
-  <ng-container *ngTemplateOutlet="linksTemplate; context: {item: item}"></ng-container>
+  <ng-template [ngIf]="linkActive">
+    <ng-container *ngTemplateOutlet="linksTemplate; context: {item: item}"></ng-container>
+  </ng-template>
 
   <ng-template [ngIf]="item._hasChildren && !item.collapsed">
 
@@ -115,7 +120,8 @@
               <path d='M0,0 V4 L2,2 Z' fill="black"></path>
             </marker>
           </defs>
-          <path [attr.d]="link.style['fifth-path']" fill="none" stroke-width="3" [attr.stroke]="item.color" marker-end="url(#head)"></path>
+          <path [attr.d]="link.style['fifth-path']" fill="none" stroke-width="3" [attr.stroke]="item.color"
+                marker-end="url(#head)"></path>
         </svg>
       </ng-template>
     </ng-template>

@@ -50,6 +50,8 @@
             <div *ngSwitchCase="'hours'" class="h-100">
 
               <app-hours-scale
+                [linkActive]="linkActive"
+                [linkEditable]="linkEditable"
                 [itemDraggedOrCollapsedEvt]="itemDraggedOrCollapsedEvt"
                 [verticalScrollPositionY]="scrollPosition"
                 (verticalScrollPositionChange)="scrollPositionChanged($event)"

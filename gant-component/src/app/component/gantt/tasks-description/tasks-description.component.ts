@@ -11,8 +11,8 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import {IItems, IItem} from '../gantt.component.interface';
-import {Observable, Subscription} from 'rxjs';
+import {IItem, IItems} from '../gantt.component.interface';
+import {from, Observable, Subscription} from 'rxjs';
 import {CdkDragDrop, moveItemInArray} from '@angular/cdk/drag-drop';
 import * as moment from 'moment';
 import {Moment} from 'moment';
@@ -42,6 +42,7 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
   public freeSpaceTop: number;
   private _indexMax: number; // histórico do index dos items adicionados quando o scroll aumenta
   private _indexMin: number; // histórico do index dos items adicionados quando o scroll diminui
+  private _isScrolling: number;
 
   // Output que informa que é preciso atualizar a lista de projectos - ex. qd alteram as suas horas e data
   @Output() updateItems: EventEmitter<boolean>;
@@ -63,6 +64,12 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
     });
 
     this._itemDraggedOrCollapsedEvt = false;
+
+    const myScrollViewport: HTMLElement = document.querySelector('div.scroll-viewport') as HTMLElement;
+    const myModelViewportHeight: number = (document.querySelector('#tasks-description') as HTMLElement).clientHeight;
+    myScrollViewport.style.height = (myModelViewportHeight - 64) + 'px';
+
+    this._initViewPortSizeEventListener();
 
     this._scrollHistory = 0;
     this._initVirtualScroll();
@@ -87,7 +94,7 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
     this.itemDraggedOrCollapsedEvt.emit(this._itemDraggedOrCollapsedEvt);
   }
 
-  public dropInside(event: CdkDragDrop<string[]>) {
+  public dropInside(event: CdkDragDrop<string[]>, item = this.itemsKeys) {
     const myPreviousIndex: number = event.container.data.findIndex((element) => {
       if (event.item.data === element) {
         return true;
@@ -207,7 +214,11 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
 
     myFnEventHandler();
 
-    setTimeout(myFnEventHandler, 300);
+    if (this._isScrolling) {
+      clearTimeout(this._isScrolling);
+    }
+
+    this._isScrolling = setTimeout(myFnEventHandler, 66);
   }
 
   private _initVirtualScroll() {
@@ -264,7 +275,10 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
   public fromDateChanged(event: any, item: IItem): void {
     let myDate: Moment = moment(event.value);
     myDate = myDate.hours(moment(item.date.from).hours()).minutes(moment(item.date.from).minutes());
-    item.date.from = myDate.toDate();
+
+    if (myDate < moment(item.date.to)) {
+      item.date.from = myDate.toDate();
+    }
 
     this.updateItems.emit();
   }
@@ -272,22 +286,44 @@ export class TasksDescriptionComponent implements OnInit, OnChanges, OnDestroy {
   public toDateChanged(event: any, item: IItem): void {
     let myDate: Moment = moment(event.value);
     myDate = myDate.hours(moment(item.date.to).hours()).minutes(moment(item.date.to).minutes());
-    item.date.to = myDate.toDate();
+
+    if (myDate > moment(item.date.from)) {
+      item.date.to = myDate.toDate();
+    }
 
     this.updateItems.emit();
   }
 
   public fromTimeChanged(event: any, item: IItem): void {
     const myDate: Moment = moment(event);
-    item.date.from = moment(item.date.from).hours(myDate.hours()).minutes(myDate.minutes()).toDate();
+
+    if (
+      moment(item.date.from).hours(myDate.hours()).minutes(myDate.minutes()).toDate() < item.date.to
+    ) {
+      item.date.from = moment(item.date.from).hours(myDate.hours()).minutes(myDate.minutes()).toDate();
+    }
 
     this.updateItems.emit();
   }
 
   public toTimeChanged(event: any, item: IItem): void {
     const myDate: Moment = moment(event);
-    item.date.to = moment(item.date.to).hours(myDate.hours()).minutes(myDate.minutes()).toDate();
+
+    if (
+      moment(item.date.to).hours(myDate.hours()).minutes(myDate.minutes()).toDate() > item.date.from
+    ) {
+      item.date.to = moment(item.date.to).hours(myDate.hours()).minutes(myDate.minutes()).toDate();
+    }
 
     this.updateItems.emit();
+  }
+
+  private _initViewPortSizeEventListener(): void {
+    window.addEventListener('resize', () => {
+      const myScrollViewport: HTMLElement = document.querySelector('div.scroll-viewport') as HTMLElement;
+      const myModelViewportHeight: number = (document.querySelector('#tasks-description') as HTMLElement).clientHeight;
+      myScrollViewport.style.height = (myModelViewportHeight - 64) + 'px';
+      this._initVirtualScroll();
+    }, {passive: true});
   }
 }

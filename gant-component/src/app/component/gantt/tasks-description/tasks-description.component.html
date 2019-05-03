@@ -69,7 +69,7 @@
   </div>
 
   <ng-template [ngIf]="item._hasChildren && !item.collapsed">
-    <div cdkDropList (cdkDropListDropped)="dropInside($event)" [cdkDropListData]="item._itemsChildrenKeys">
+    <div cdkDropList (cdkDropListDropped)="dropInside($event, item)" [cdkDropListData]="item._itemsChildrenKeys">
       <div *ngFor="let projKey of item._itemsChildrenKeys" cdkDrag [cdkDragData]="projKey">
         <ng-container
           *ngTemplateOutlet="templateItem; context: { item: item.itemsChildren[projKey] }"></ng-container>
