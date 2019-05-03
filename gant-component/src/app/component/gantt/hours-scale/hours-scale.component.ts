@@ -789,7 +789,6 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
 
   public startDragLink(event: MouseEvent, item: IItem): void {
     if (this.linkEditable) {
-      console.log(event);
       this._dragLinkStarted = true;
       const circles: NodeList = document.querySelectorAll('div.left-circle');
       nodeForEach(circles, value => {
@@ -824,7 +823,6 @@ export class HoursScaleComponent implements OnInit, OnChanges, OnDestroy {
           Number(myParentElmt.style.width.replace('px', ''))) + 6;
 
       this._originalTopPosition = item._orderNumber * 32 - 32 + 8;
-      console.log(item._orderNumber);
 
       const mySvg: HTMLElement = document.querySelector('svg.temporaryLink');
       mySvg.style.left = `${this._originalLeftPosition}px`;
